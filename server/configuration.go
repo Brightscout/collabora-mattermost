@@ -29,7 +29,7 @@ type WopiDiscovery struct {
 				Text   string `xml:",chardata"`
 				Ext    string `xml:"ext,attr"`
 				Name   string `xml:"name,attr"`
-				Urlsrc string `xml:"urlsrc,attr"`
+				URLsrc string `xml:"urlsrc,attr"`
 			} `xml:"action"`
 		} `xml:"app"`
 	} `xml:"net-zone"`
@@ -40,7 +40,7 @@ var WOPIData WopiDiscovery
 
 //WOPIFileInfo is used top map file extension with the action & url
 type WOPIFileInfo struct {
-	Url    string //WOPI url to view/edit the file
+	URL    string //WOPI url to view/edit the file
 	Action string //edit or view
 }
 
@@ -106,7 +106,7 @@ func (p *Plugin) setConfiguration(configuration *configuration) {
 		if ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "gif" {
 			continue
 		}
-		WOPIFiles[strings.ToLower(ext)] = WOPIFileInfo{WOPIData.NetZone.App[i].Action.Urlsrc, WOPIData.NetZone.App[i].Action.Name}
+		WOPIFiles[strings.ToLower(ext)] = WOPIFileInfo{WOPIData.NetZone.App[i].Action.URLsrc, WOPIData.NetZone.App[i].Action.Name}
 	}
 	p.API.LogInfo("WOPI file info loaded successfully!")
 }
