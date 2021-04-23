@@ -29,7 +29,7 @@ type WopiDiscovery struct {
 				Text   string `xml:",chardata"`
 				Ext    string `xml:"ext,attr"`
 				Name   string `xml:"name,attr"`
-				Urlsrc string `xml:"urlsrc,attr"`
+				URLSrc string `xml:"urlsrc,attr"`
 			} `xml:"action"`
 		} `xml:"app"`
 	} `xml:"net-zone"`
@@ -107,7 +107,7 @@ func (p *Plugin) setConfiguration(configuration *configuration) {
 			if ext == "" || ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "gif" {
 				continue
 			}
-			WOPIFiles[strings.ToLower(ext)] = WOPIFileInfo{WOPIData.NetZone.App[i].Action[j].Urlsrc, WOPIData.NetZone.App[i].Action[j].Name}
+			WOPIFiles[strings.ToLower(ext)] = WOPIFileInfo{WOPIData.NetZone.App[i].Action[j].URLSrc, WOPIData.NetZone.App[i].Action[j].Name}
 		}
 	}
 	p.API.LogInfo("WOPI file info loaded successfully!")
