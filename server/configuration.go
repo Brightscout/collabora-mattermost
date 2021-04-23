@@ -98,7 +98,15 @@ func (p *Plugin) setConfiguration(configuration *configuration) {
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	xml.Unmarshal(body, &WOPIData)
+	if err != nil {
+		p.API.LogError("WOPI request error. Failed to read WOPI request body. Please check the WOPI address.", err.Error())
+		return
+	}
+
+	if err := xml.Unmarshal(body, &WOPIData); err != nil {
+		p.API.LogError("WOPI request error. Failed to unmarshal WOPI XML. Please check the WOPI address.", err.Error())
+		return
+	}
 
 	WOPIFiles = make(map[string]WOPIFileInfo)
 	for i := 0; i < len(WOPIData.NetZone.App); i++ {
