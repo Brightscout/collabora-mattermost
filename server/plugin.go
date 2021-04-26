@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 //FileInfo contains file informaton sent to the client
@@ -136,7 +136,7 @@ func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	url := WOPIFiles[strings.ToLower(file.Extension)].URL + "WOPISrc=" + *p.API.GetConfig().ServiceSettings.SiteURL + "/plugins/" + manifest.ID + "/wopi/files/" + fileID
+	url := WOPIFiles[strings.ToLower(file.Extension)].URL + "WOPISrc=" + *p.API.GetConfig().ServiceSettings.SiteURL + "/plugins/" + manifest.Id + "/wopi/files/" + fileID
 	token := EncodeToken(r.Header.Get("Mattermost-User-Id"), fileID, p)
 
 	response := struct {
