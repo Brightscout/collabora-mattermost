@@ -1,5 +1,8 @@
+import {GlobalState} from 'mattermost-redux/types/store';
+
 import {id as pluginId} from '../manifest';
 
-const getPluginState = (state) => state['plugins-' + pluginId] || {};
+//@ts-ignore GlobalState is not complete
+const getPluginState = (state: GlobalState) => state['plugins-' + pluginId] || {};
 
-export const wopiFilesList = (state) => getPluginState(state).wopiFilesList;
+export const wopiFilesList = (state: GlobalState) => getPluginState(state).wopiFilesList;

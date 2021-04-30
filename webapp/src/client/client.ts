@@ -12,13 +12,12 @@ export default class Client {
     }
 
     getWopiFilesList = () => {
-        //fetch wopiFiles, a JSON with file extensions, actions (view/edit) and the Collabora Online URL where the action is done
+        // fetch wopiFiles, a JSON with file extensions, actions (view/edit) and the Collabora Online URL where the action is done
         return this.doGet(this.baseURL + '/wopiFileList');
     }
 
     getCollaboraOnlineURL = (fileID: string) => {
-        //ask the server for the Collabora Online URL & token where the file will be edited
-        //and load it into the iframe
+        // fetch the Collabora Online URL & token where the file will be edited
         const params = {
             file_id: fileID,
         };
