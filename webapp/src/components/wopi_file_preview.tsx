@@ -19,6 +19,7 @@ export const WopiFilePreview: FC<ComponentProps> = (props: ComponentProps) => {
     const handleWopiFile = async (fileID: string) => {
         //ask the server for the Collabora Online URL & token where the file will be edited
         //and load it into the iframe
+        // TODO: Handle this API call failure
         const fileData = await Client.getCollaboraOnlineURL(fileID);
 
         //as the request to Collabora Online should be of POST type, a form is used to submit it.

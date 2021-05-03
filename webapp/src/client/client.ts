@@ -1,3 +1,5 @@
+import qs from 'qs';
+
 import {Client4} from 'mattermost-redux/client';
 import {ClientError} from 'mattermost-redux/client/client4';
 import {Options} from 'mattermost-redux/types/client4';
@@ -88,21 +90,13 @@ export default class Client {
     };
 
     buildQueryString(parameters: Record<string, string | number | boolean>) {
-        const keys = Object.keys(parameters);
-        if (keys.length === 0) {
+        if (Object.keys(parameters).length === 0) {
             return '';
         }
 
-        let query = '?';
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            query += key + '=' + encodeURIComponent(parameters[key]);
-
-            if (i < keys.length - 1) {
-                query += '&';
-            }
-        }
-
-        return query;
+        return `?${qs.stringify(parameters, {
+            encodeValuesOnly: true,
+            arrayFormat: 'indices',
+        })}`;
     }
 }
