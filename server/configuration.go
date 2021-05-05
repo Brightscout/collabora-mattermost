@@ -1,11 +1,8 @@
 package main
 
 import (
-	"crypto/tls"
 	"encoding/xml"
-	"fmt"
 	"io/ioutil"
-	"net/http"
 	"reflect"
 	"strings"
 
@@ -16,41 +13,35 @@ type configuration struct {
 	WOPIAddress string
 }
 
-//WopiDiscovery represents the XML from <WOPI>/hosting/discovery
-type WopiDiscovery struct {
-	XMLName xml.Name `xml:"wopi-discovery"`
-	Text    string   `xml:",chardata"`
-	NetZone struct {
-		Text string `xml:",chardata"`
-		Name string `xml:"name,attr"`
-		App  []struct {
-			Text   string `xml:",chardata"`
-			Name   string `xml:"name,attr"`
-			Action []struct {
-				Text   string `xml:",chardata"`
-				Ext    string `xml:"ext,attr"`
-				Name   string `xml:"name,attr"`
-				URLSrc string `xml:"urlsrc,attr"`
-			} `xml:"action"`
-		} `xml:"app"`
-	} `xml:"net-zone"`
-}
+var (
+	//WOPIData contains the XML from <WOPI>/hosting/discovery
+	WOPIData WopiDiscovery
 
-//WOPIData contains the XML from <WOPI>/hosting/discovery
-var WOPIData WopiDiscovery
-
-//WOPIFileInfo is used top map file extension with the action & url
-type WOPIFileInfo struct {
-	URL    string //WOPI url to view/edit the file
-	Action string //edit or view
-}
-
-//WOPIFiles maps file extension with file action & url
-var WOPIFiles map[string]WOPIFileInfo
+	//WOPIFiles maps file extension with file action & url
+	WOPIFiles map[string]WOPIFileInfo
+)
 
 // Clone deep copies the configuration
 func (c *configuration) Clone() *configuration {
 	return &configuration{WOPIAddress: c.WOPIAddress}
+}
+
+// ProcessConfiguration processes the config.
+func (c *configuration) ProcessConfiguration() error {
+	// trim trailing slash or spaces from the WOPI address, if needed
+	c.WOPIAddress = strings.TrimSpace(c.WOPIAddress)
+	c.WOPIAddress = strings.Trim(c.WOPIAddress, "/")
+
+	return nil
+}
+
+// IsValid checks if all needed fields are set.
+func (c *configuration) IsValid() error {
+	if c.WOPIAddress == "" {
+		return errors.New("please provide the WOPIAddress")
+	}
+
+	return nil
 }
 
 // OnConfigurationChange is called when plugin's configuration changes
@@ -62,12 +53,23 @@ func (p *Plugin) OnConfigurationChange() error {
 		return errors.Wrap(loadConfigErr, "failed to load plugin configuration")
 	}
 
+	if err := configuration.ProcessConfiguration(); err != nil {
+		p.API.LogError("Error in ProcessConfiguration.", "Error", err.Error())
+		return err
+	}
+
+	if err := configuration.IsValid(); err != nil {
+		p.API.LogError("Error in Validating Configuration.", "Error", err.Error())
+		return err
+	}
+
 	p.setConfiguration(configuration)
+	p.loadWopiFileInfo(configuration.WOPIAddress)
 
 	return nil
 }
 
-// set the new configuration and load WOPI file data
+// setConfiguration sets the new configuration
 func (p *Plugin) setConfiguration(configuration *configuration) {
 	p.configurationLock.Lock()
 	defer p.configurationLock.Unlock()
@@ -84,19 +86,12 @@ func (p *Plugin) setConfiguration(configuration *configuration) {
 	}
 
 	p.configuration = configuration
+}
 
-	wopiAddress := configuration.WOPIAddress
-
-	//append trailing slash to the WOPI address if needed
-	if wopiAddress[len(wopiAddress)-1:] != "/" {
-		wopiAddress = fmt.Sprintf("%s%s", wopiAddress, "/")
-	}
-
-	// TODO: move this to a configurable system console setting
-	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	client := &http.Client{Transport: customTransport}
-	resp, err := client.Get(wopiAddress + "hosting/discovery")
+//loadWopiFileInfo loads the WOPI file data
+func (p *Plugin) loadWopiFileInfo(wopiAddress string) {
+	client := getHTTPClient()
+	resp, err := client.Get(wopiAddress + "/hosting/discovery")
 	if err != nil {
 		p.API.LogError("WOPI request error. Please check the WOPI address.", err.Error())
 		return
