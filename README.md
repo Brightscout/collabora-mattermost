@@ -23,7 +23,7 @@ You can build your own, or conveniently use a version of our [CODE edition](http
 
 1. You can get the latest version on the [releases page](https://github.com/CollaboraOnline/collabora-mattermost/releases/latest).
 1. Upload & install it via Mattermost [System Console](https://about.mattermost.com/default-plugin-uploads)
-1. After installing the plugin you should go to plugin's settings in System Console and set the Collabora Online address (more about this bellow).
+1. After installing the plugin you should go to the plugin's settings in System Console and set the Collabora Online address (more about this below).
    A page refresh may be required for the plugin’s settings to appear in the System Console.
 
 ## Development
