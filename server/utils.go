@@ -8,10 +8,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-func getHTTPClient() *http.Client {
+func (p *Plugin) getHTTPClient() *http.Client {
+	config := p.getConfiguration()
 	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	// TODO: move this (InsecureSkipVerify) to a configurable system console setting
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	if config.DisableCertificateVerification {
+		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+
 	client := &http.Client{Transport: customTransport}
 	return client
 }
