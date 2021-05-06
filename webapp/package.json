@@ -70,14 +70,17 @@
     "webpack-cli": "3.3.12"
   },
   "dependencies": {
-    "core-js": "3.6.5",
+    "clsx": "1.1.1",
+    "core-js": "3.9.0",
     "mattermost-redux": "^5.33.1",
     "qs": "6.10.1",
     "react": "16.13.1",
-    "react-intl": "3.3.2",
-    "react-redux": "7.2.0",
+    "react-bootstrap": "0.33.1",
+    "react-dom": "16.13.1",
+    "react-redux": "7.2.2",
+    "react-transition-group": "4.2.1",
     "redux": "4.0.5",
-    "typescript": "3.9.6"
+    "typescript": "4.1.3"
   },
   "jest": {
     "snapshotSerializers": [
