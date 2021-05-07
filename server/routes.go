@@ -153,7 +153,7 @@ func (p *Plugin) parseWopiRequests(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//check if user has access to the channel where the file was sent
-	//p.API.HasPermissionToChannel(userID,channelID) war returning false for some reason...
+	//p.API.HasPermissionToChannel(userID,channelID) was returning false for some reason...
 	members, channelMembersError := p.API.GetChannelMembersByIds(postInfo.ChannelId, []string{wopiToken.UserID})
 	if channelMembersError != nil {
 		p.API.LogError("Error occurred when retrieving channel members: " + channelMembersError.Error())
