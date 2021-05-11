@@ -199,6 +199,8 @@ func (p *Plugin) parseWopiRequests(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// returnFileInfoForWOPI returns the file information
+// see: http://wopi.readthedocs.io/projects/wopirest/en/latest/files/CheckFileInfo.html#checkfileinfo
 func (p *Plugin) returnFileInfoForWOPI(w http.ResponseWriter, r *http.Request) {
 	splitURL := strings.Split(r.URL.Path, "/")
 	fileID := splitURL[len(splitURL)-1]
@@ -233,15 +235,7 @@ func (p *Plugin) returnFileInfoForWOPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wopiFileInfo := struct {
-		BaseFileName            string `json:"BaseFileName"`
-		Size                    int64  `json:"Size"`
-		OwnerID                 string `json:"OwnerId"`
-		UserID                  string `json:"UserId"`
-		UserFriendlyName        string `json:"UserFriendlyName"`
-		UserCanWrite            bool   `json:"UserCanWrite"`
-		UserCanNotWriteRelative bool   `json:"UserCanNotWriteRelative"`
-	}{
+	wopiFileInfo := WOPICheckFileInfo{
 		BaseFileName:            fileInfo.Name,
 		Size:                    fileInfo.Size,
 		OwnerID:                 post.UserId,
