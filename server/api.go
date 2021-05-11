@@ -28,8 +28,8 @@ func (p *Plugin) InitAPI() *mux.Router {
 	s.HandleFunc("/fileInfo", handleAuthRequired(p.parseFileIDs)).Methods(http.MethodGet)
 	s.HandleFunc("/wopiFileList", handleAuthRequired(p.returnWopiFileList)).Methods(http.MethodGet)
 	s.HandleFunc("/collaboraURL", handleAuthRequired(p.returnCollaboraOnlineFileURL)).Methods(http.MethodGet)
-	s.HandleFunc("/wopi/files/{fileID:[A-Za-z0-9_]+}", p.returnWopiFileInfo).Methods(http.MethodGet)
-	s.HandleFunc("/wopi/files/{fileID:[A-Za-z0-9_]+}/contents", p.parseWopiRequests).Methods(http.MethodGet, http.MethodPost)
+	s.HandleFunc("/wopi/files/{fileID:[a-z0-9]+}", p.returnWopiFileInfo).Methods(http.MethodGet)
+	s.HandleFunc("/wopi/files/{fileID:[a-z0-9]+}/contents", p.parseWopiRequests).Methods(http.MethodGet, http.MethodPost)
 
 	// 404 handler
 	r.Handle("{anything:.*}", http.NotFoundHandler())
@@ -54,6 +54,18 @@ func (p *Plugin) withRecovery(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// handleStaticFiles handles the static files under the assets directory.
+func (p *Plugin) handleStaticFiles(r *mux.Router) {
+	bundlePath, err := p.API.GetBundlePath()
+	if err != nil {
+		p.API.LogWarn("Failed to get bundle path.", "Error", err.Error())
+		return
+	}
+
+	// This will serve static files from the 'assets' directory under '/static/<filename>'
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(filepath.Join(bundlePath, "assets")))))
 }
 
 // handleAuthRequired verifies if provided request is performed by a logged-in Mattermost user.
@@ -82,7 +94,7 @@ func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 	_ = json.Unmarshal(body, &fileIDs)
 
 	//create an array with more detailed file info for each file
-	files := make([]CollaboraFileInfo, 0, len(fileIDs))
+	files := make([]ClientFileInfo, 0, len(fileIDs))
 	for _, fileID := range fileIDs {
 		fileInfo, fileInfoError := p.API.GetFileInfo(fileID)
 		if fileInfoError != nil {
@@ -90,7 +102,7 @@ func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		if value, ok := WopiFiles[strings.ToLower(fileInfo.Extension)]; ok {
-			file := CollaboraFileInfo{
+			file := ClientFileInfo{
 				fileInfo.Id,
 				fileInfo.Name,
 				fileInfo.Extension,
@@ -120,15 +132,17 @@ func (p *Plugin) returnWopiFileList(w http.ResponseWriter, r *http.Request) {
 // load Collabora Online in the iframe
 func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Request) {
 	//retrieve fileID and file info
-	queryFileID, ok := r.URL.Query()["file_id"]
-	if !ok {
+	fileID := r.URL.Query().Get("file_id")
+	if fileID == "" {
 		p.API.LogError("file_id query parameter missing!")
+		http.Error(w, "missing file_id parameter", http.StatusBadRequest)
 		return
 	}
-	fileID := queryFileID[0]
+
 	file, fileError := p.API.GetFileInfo(fileID)
 	if fileError != nil {
 		p.API.LogError("Failed to retrieve file. Error: ", fileError.Error())
+		http.Error(w, "Invalid fileID. Error: " + fileError.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -256,7 +270,7 @@ func (p *Plugin) returnWopiFileInfo(w http.ResponseWriter, r *http.Request) {
 
 	fileInfo, err := p.API.GetFileInfo(fileID)
 	if err != nil {
-		p.API.LogError("Error retrieving file info, fileId: " + fileID)
+		p.API.LogError("Error retrieving file info, fileID: " + fileID)
 		return
 	}
 
@@ -282,16 +296,4 @@ func (p *Plugin) returnWopiFileInfo(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(responseJSON); err != nil {
 		p.API.LogError("failed to write status", "err", err.Error())
 	}
-}
-
-// handleStaticFiles handles the static files under the assets directory.
-func (p *Plugin) handleStaticFiles(r *mux.Router) {
-	bundlePath, err := p.API.GetBundlePath()
-	if err != nil {
-		p.API.LogWarn("Failed to get bundle path.", "Error", err.Error())
-		return
-	}
-
-	// This will serve static files from the 'assets' directory under '/assets/<filename>'
-	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(bundlePath, "assets")))))
 }

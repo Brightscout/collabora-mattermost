@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/xml"
+
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -58,14 +59,14 @@ type WopiCheckFileInfo struct {
 	UserCanNotWriteRelative bool `json:"UserCanNotWriteRelative"`
 }
 
-//WopiFileInfo is used top map file extension with the action & url
-type WopiFileInfo struct {
+//WopiFile is used top map file extension with the action & url
+type WopiFile struct {
 	URL    string //WOPI url to view/edit the file
 	Action string //edit or view
 }
 
-//CollaboraFileInfo contains file information sent to the client
-type CollaboraFileInfo struct {
+//ClientFileInfo contains file information sent to the client
+type ClientFileInfo struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
 	Extension string `json:"extension"`

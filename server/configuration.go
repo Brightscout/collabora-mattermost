@@ -11,7 +11,7 @@ import (
 
 var (
 	//WopiFiles maps file extension with file action & url
-	WopiFiles map[string]WopiFileInfo
+	WopiFiles map[string]WopiFile
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
@@ -116,14 +116,14 @@ func (p *Plugin) loadWopiFileInfo(wopiAddress string) error {
 		return err
 	}
 
-	WopiFiles = make(map[string]WopiFileInfo)
+	WopiFiles = make(map[string]WopiFile)
 	for _, app := range wopiData.NetZone.App {
 		for _, action := range app.Action {
 			ext := strings.ToLower(action.Ext)
 			if ext == "" || ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "gif" {
 				continue
 			}
-			WopiFiles[ext] = WopiFileInfo{action.URLSrc, action.Name}
+			WopiFiles[ext] = WopiFile{action.URLSrc, action.Name}
 		}
 	}
 
