@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {ButtonHTMLAttributes} from 'react';
 
-export default function BackIcon(props) {
+export default function BackIcon(props: ButtonHTMLAttributes<unknown>) {
     return (
         <button
             {...props}

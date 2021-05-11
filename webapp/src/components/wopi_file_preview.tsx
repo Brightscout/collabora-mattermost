@@ -4,11 +4,11 @@ import {FileInfo} from 'mattermost-redux/types/files';
 
 import Client from '../client';
 
-interface ComponentProps {
+type Props = {
     fileInfo: FileInfo;
 }
 
-export const WopiFilePreview: FC<ComponentProps> = (props: ComponentProps) => {
+export const WopiFilePreview: FC<Props> = (props: Props) => {
     useEffect(() => {
         const {fileInfo} = props;
         if (fileInfo?.id) {
@@ -50,8 +50,8 @@ export const WopiFilePreview: FC<ComponentProps> = (props: ComponentProps) => {
                 />
             </form>
             <iframe
-                height={window.innerHeight - 50}
-                width={window.innerWidth - 200}
+                height={window.innerHeight}
+                width={window.innerWidth}
                 id='collabora-iframe'
                 name='collabora-iframe'
             />

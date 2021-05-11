@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {ButtonHTMLAttributes} from 'react';
 
-export default function CloseIcon(props) {
+export default function CloseIcon(props: ButtonHTMLAttributes<unknown>) {
     return (
         <button
             {...props}

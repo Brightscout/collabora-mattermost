@@ -72,21 +72,19 @@ class FullScreenModal extends React.PureComponent<Props> {
                         role='dialog'
                     >
                         {this.props.onGoBack && (
-                            <button
+                            <BackIcon
+                                id='backIcon'
                                 onClick={this.props.onGoBack}
                                 className='back'
                                 aria-label={'Back'}
-                            >
-                                <BackIcon id='backIcon'/>
-                            </button>
+                            />
                         )}
-                        <button
+                        <CloseIcon
+                            id='closeIcon'
                             onClick={this.close}
                             className='close-x'
                             aria-label={'Close'}
-                        >
-                            <CloseIcon id='closeIcon'/>
-                        </button>
+                        />
                         {this.props.children}
                     </div>
                     <div
