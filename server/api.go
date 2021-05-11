@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -29,7 +30,8 @@ func (p *Plugin) InitAPI() *mux.Router {
 	s.HandleFunc("/wopiFileList", handleAuthRequired(p.returnWopiFileList)).Methods(http.MethodGet)
 	s.HandleFunc("/collaboraURL", handleAuthRequired(p.returnCollaboraOnlineFileURL)).Methods(http.MethodGet)
 	s.HandleFunc("/wopi/files/{fileID:[a-z0-9]+}", p.returnWopiFileInfo).Methods(http.MethodGet)
-	s.HandleFunc("/wopi/files/{fileID:[a-z0-9]+}/contents", p.parseWopiRequests).Methods(http.MethodGet, http.MethodPost)
+	s.HandleFunc("/wopi/files/{fileID:[a-z0-9]+}/contents", p.getWopiFileContents).Methods(http.MethodGet)
+	s.HandleFunc("/wopi/files/{fileID:[a-z0-9]+}/contents", p.saveWopiFileContents).Methods(http.MethodPost)
 
 	// 404 handler
 	r.Handle("{anything:.*}", http.NotFoundHandler())
@@ -121,7 +123,7 @@ func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 }
 
 // returnWopiFileList returns the list with file extensions and actions associated with these files
-func (p *Plugin) returnWopiFileList(w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) returnWopiFileList(w http.ResponseWriter, _ *http.Request) {
 	responseJSON, _ := json.Marshal(WopiFiles)
 	if _, err := w.Write(responseJSON); err != nil {
 		p.API.LogError("failed to write status", "err", err.Error())
@@ -162,26 +164,61 @@ func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Req
 	}
 }
 
-// parseWopiRequests is used by Collabora Online server to get/save the contents of a file
-func (p *Plugin) parseWopiRequests(w http.ResponseWriter, r *http.Request) {
+// getWopiFileContents is used by Collabora Online server to get the contents of a file
+func (p *Plugin) getWopiFileContents(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	fileID := params["fileID"]
 
-	token, tokenErr := getAccessTokenFromURI(r.RequestURI)
-	if tokenErr != nil {
-		p.API.LogError("Error retrieving token from URI: "+r.RequestURI, "Error", tokenErr.Error())
+	wopiToken, tokenErr := p.GetWopiTokenFromURI(r.RequestURI)
+	if tokenErr != nil || wopiToken.FileID != fileID {
+		p.API.LogError(fmt.Sprintf("Invalid token. Error: %v", tokenErr))
 		return
 	}
 
-	wopiToken, isValid := p.DecodeToken(token)
-	if !isValid || wopiToken.FileID != fileID {
-		p.API.LogError("Invalid token.")
+	fileInfo, fileInfoError := p.API.GetFileInfo(fileID)
+	if fileInfoError != nil {
+		p.API.LogError("Error occurred when retrieving file info: " + fileInfoError.Error())
+		return
+	}
+
+	postInfo, postInfoError := p.API.GetPost(fileInfo.PostId)
+	if postInfoError != nil {
+		p.API.LogError("Error occurred when retrieving post info for file: " + postInfoError.Error())
+		return
+	}
+
+	//check if user has access to the channel where the file was sent
+	//p.API.HasPermissionToChannel(userID,channelID) was returning false for some reason...
+	members, channelMembersError := p.API.GetChannelMembersByIds(postInfo.ChannelId, []string{wopiToken.UserID})
+	if channelMembersError != nil {
+		p.API.LogError("Error occurred when retrieving channel members.", "Error", channelMembersError.Error())
+		return
+	}
+	if members == nil {
+		p.API.LogError("User doesn't have access to the channel where the file was sent.")
 		return
 	}
 
 	fileContent, err := p.API.GetFile(fileID)
 	if err != nil {
 		p.API.LogError("Error retrieving file info, fileID: " + fileID)
+		return
+	}
+
+	//send file to Collabora Online
+	if _, err := w.Write(fileContent); err != nil {
+		p.API.LogError("failed to write status", "err", err.Error())
+	}
+}
+
+// saveWopiFileContents is used by Collabora Online server to save the updated contents of a file
+func (p *Plugin) saveWopiFileContents(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	fileID := params["fileID"]
+
+	wopiToken, tokenErr := p.GetWopiTokenFromURI(r.RequestURI)
+	if tokenErr != nil || wopiToken.FileID != fileID {
+		p.API.LogError(fmt.Sprintf("Invalid token. Error: %v", tokenErr))
 		return
 	}
 
@@ -202,45 +239,31 @@ func (p *Plugin) parseWopiRequests(w http.ResponseWriter, r *http.Request) {
 	members, channelMembersError := p.API.GetChannelMembersByIds(postInfo.ChannelId, []string{wopiToken.UserID})
 	if channelMembersError != nil {
 		p.API.LogError("Error occurred when retrieving channel members: " + channelMembersError.Error())
+		return
 	}
 	if members == nil {
 		p.API.LogError("User doesn't have access to the channel where the file was sent")
 		return
 	}
 
-	//send file to Collabora Online
-	if r.Method == http.MethodGet {
-		if _, err := w.Write(fileContent); err != nil {
-			p.API.LogError("failed to write status", "err", err.Error())
-		}
+	//save file received from Collabora Online
+	filePath := filepath.Join(*p.API.GetConfig().FileSettings.Directory, fileInfo.Path)
+	f, fileCreateError := os.Create(filePath)
+	if fileCreateError != nil {
+		p.API.LogError("Error occurred when creating new file: ", fileCreateError.Error())
+		return
+	}
+	defer f.Close()
+
+	body, bodyReadError := ioutil.ReadAll(r.Body)
+	if bodyReadError != nil {
+		p.API.LogError("Error occurred when reading body:", bodyReadError.Error())
+		return
 	}
 
-	//save file received from Collabora Online
-	if r.Method == http.MethodPost {
-		f, fileCreateError := os.Create("./data/" + fileInfo.Path)
-		if fileCreateError != nil {
-			p.API.LogError("Error occurred when creating new file: ", fileCreateError.Error())
-			return
-		}
-
-		body, bodyReadError := ioutil.ReadAll(r.Body)
-		if bodyReadError != nil {
-			p.API.LogError("Error occurred when reading body:", bodyReadError.Error())
-			return
-		}
-
-		_, fileSaveError := f.Write(body)
-		if fileSaveError != nil {
-			p.API.LogError("Error occurred when writing contents to file: " + fileSaveError.Error())
-			f.Close()
-			return
-		}
-
-		fileCloseError := f.Close()
-		if fileCloseError != nil {
-			p.API.LogError("Error occurred when closing the file: " + fileCloseError.Error())
-			return
-		}
+	if _, err := f.Write(body); err != nil {
+		p.API.LogError("Error occurred when writing contents to file: " + err.Error())
+		return
 	}
 }
 
@@ -250,15 +273,9 @@ func (p *Plugin) returnWopiFileInfo(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	fileID := params["fileID"]
 
-	token, tokenErr := getAccessTokenFromURI(r.RequestURI)
-	if tokenErr != nil {
-		p.API.LogError("Error retrieving token from URI:"+r.RequestURI, "Error", tokenErr.Error())
-		return
-	}
-
-	wopiToken, isValid := p.DecodeToken(token)
-	if !isValid || wopiToken.FileID != fileID {
-		p.API.LogError("Collabora Online called the plugin with an invalid token.")
+	wopiToken, tokenErr := p.GetWopiTokenFromURI(r.RequestURI)
+	if tokenErr != nil || wopiToken.FileID != fileID {
+		p.API.LogError(fmt.Sprintf("Invalid token. Error: %v", tokenErr))
 		return
 	}
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -18,7 +19,7 @@ var (
 func (p *Plugin) EnsureEncryptionPassword() {
 	password := GenerateEncryptionPassword()
 	if _, err := p.KVEnsure(kvEncryptionPasswordKey, []byte(password)); err != nil {
-		p.API.LogError("Cannot set an encryption password for the plugin, fallback password will be used.", "Error", err.Error())
+		p.API.LogError("Failed to set an encryption password for the plugin, fallback password will be used.", "Error", err.Error())
 		fallbackPassword = password
 		return
 	}
@@ -61,4 +62,20 @@ func (p *Plugin) DecodeToken(tokenString string) (WopiToken, bool) {
 	}
 
 	return wopiToken, true
+}
+
+// GetWopiTokenFromURI decodes a token string from the URI
+// returns WopiToken and error
+func (p *Plugin) GetWopiTokenFromURI(uri string) (WopiToken, error) {
+	token, tokenErr := getAccessTokenFromURI(uri)
+	if tokenErr != nil {
+		return WopiToken{}, errors.Wrap(tokenErr, "failed to retrieve token from URI: "+uri)
+	}
+
+	wopiToken, isValid := p.DecodeToken(token)
+	if !isValid {
+		return WopiToken{}, errors.New("collaboraOnline called the plugin with an invalid token")
+	}
+
+	return wopiToken, nil
 }
