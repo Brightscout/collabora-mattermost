@@ -19,7 +19,7 @@ type Plugin struct {
 
 //OnActivate is called when the plugin is activated
 func (p *Plugin) OnActivate() error {
-	p.GenerateEncryptionPassword()
+	p.EnsureEncryptionPassword()
 	p.router = p.InitAPI()
 	return nil
 }

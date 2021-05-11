@@ -142,7 +142,7 @@ func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Req
 	file, fileError := p.API.GetFileInfo(fileID)
 	if fileError != nil {
 		p.API.LogError("Failed to retrieve file. Error: ", fileError.Error())
-		http.Error(w, "Invalid fileID. Error: " + fileError.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid fileID. Error: "+fileError.Error(), http.StatusBadRequest)
 		return
 	}
 
