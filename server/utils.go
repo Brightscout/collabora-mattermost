@@ -19,16 +19,16 @@ func (p *Plugin) getHTTPClient() *http.Client {
 	return client
 }
 
-//Because the access_token get's removed from Query parameters by Mattermost before
-//it reaches the plugin HTTP request parser, it should be manually extracted from the URI
+// getAccessTokenFromURI extracts the access_token from the URI
+// We need to do this manually as Mattermost removes the access_token before it reaches the plugin HTTP request parser
 func getAccessTokenFromURI(uri string) (string, error) {
-	u, err := url.Parse(uri)
+	parsedURL, err := url.Parse(uri)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to parse uri")
 	}
-	m, parseErr := url.ParseQuery(u.RawQuery)
+	urlValues, parseErr := url.ParseQuery(parsedURL.RawQuery)
 	if parseErr != nil {
 		return "", errors.Wrap(parseErr, "failed to parse raw query")
 	}
-	return m["access_token"][0], nil
+	return urlValues.Get("access_token"), nil
 }

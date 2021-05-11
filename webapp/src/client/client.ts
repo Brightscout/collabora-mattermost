@@ -10,7 +10,7 @@ export default class Client {
     baseURL: string;
 
     constructor() {
-        this.baseURL = `/plugins/${pluginId}`;
+        this.baseURL = `/plugins/${pluginId}/api/v1`;
     }
 
     getWopiFilesList = () => {

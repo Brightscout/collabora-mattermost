@@ -6,44 +6,71 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/gorilla/mux"
 )
 
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	//send file info to client (name, extension and id) for each file
-	//body contains an array with file ids in JSON format
-	if r.URL.Path == "/fileInfo" {
-		p.parseFileIDs(w, r)
-	}
+const (
+	HeaderMattermostUserID = "Mattermost-User-Id"
+)
 
-	//send list with file extensions and actions associated with these files
-	if r.URL.Path == "/wopiFileList" {
-		p.returnWopiFileList(w, r)
-	}
+// InitAPI initializes the REST API
+func (p *Plugin) InitAPI() *mux.Router {
+	r := mux.NewRouter()
+	r.Use(p.withRecovery)
 
-	//send URL and token which the client will use to load Collabora Online in the iframe
-	if r.URL.Path == "/collaboraURL" {
-		p.returnCollaboraOnlineFileURL(w, r)
-	}
+	p.handleStaticFiles(r)
+	s := r.PathPrefix("/api/v1").Subrouter()
 
-	//https://<WOPI host URL>/<...>/wopi/files/<id>/contents gets/saves a file, used by Collabora Online
-	if strings.Contains(r.URL.Path, "/wopi/files/") && strings.Contains(r.URL.Path, "contents") {
-		p.parseWopiRequests(w, r)
-	}
+	// Add the custom plugin routes here
+	s.HandleFunc("/fileInfo", handleAuthRequired(p.parseFileIDs)).Methods(http.MethodGet)
+	s.HandleFunc("/wopiFileList", handleAuthRequired(p.returnWopiFileList)).Methods(http.MethodGet)
+	s.HandleFunc("/collaboraURL", handleAuthRequired(p.returnCollaboraOnlineFileURL)).Methods(http.MethodGet)
+	s.HandleFunc("/wopi/files/{fileID:[A-Za-z0-9_]+}", p.returnWopiFileInfo).Methods(http.MethodGet)
+	s.HandleFunc("/wopi/files/{fileID:[A-Za-z0-9_]+}/contents", p.parseWopiRequests).Methods(http.MethodGet, http.MethodPost)
 
-	//https://<WOPI host URL>/<...>/wopi/files/<id> returns file info, used by Collabora Online
-	if strings.Contains(r.URL.Path, "/wopi/files/") && !strings.Contains(r.URL.Path, "contents") {
-		p.returnFileInfoForWOPI(w, r)
-	}
+	// 404 handler
+	r.Handle("{anything:.*}", http.NotFoundHandler())
+	return r
+}
 
-	//for serving assets from the assets/folder to the client side of the plugin
-	if strings.Contains(r.URL.Path, "/assets/") {
-		p.serveAsset(w, r)
+func (p *Plugin) getBaseAPIURL() string {
+	return *p.API.GetConfig().ServiceSettings.SiteURL + "/plugins/" + manifest.Id + "/api/v1"
+}
+
+// withRecovery allows recovery from panics
+func (p *Plugin) withRecovery(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if x := recover(); x != nil {
+				p.API.LogError("Recovered from a panic",
+					"url", r.URL.String(),
+					"error", x,
+					"stack", string(debug.Stack()))
+			}
+		}()
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// handleAuthRequired verifies if provided request is performed by a logged-in Mattermost user.
+func handleAuthRequired(handleFunc func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Header.Get(HeaderMattermostUserID)
+		if userID == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		handleFunc(w, r)
 	}
 }
 
+// parseFileIDs sends the file info to the client (name, extension and id) for each file
+// body contains an array with file ids in JSON format
 func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 	//extract fileIDs array from body
 	body, bodyReadError := ioutil.ReadAll(r.Body)
@@ -62,7 +89,7 @@ func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 			p.API.LogError("Error when retrieving file info: ", fileInfoError.Error())
 			continue
 		}
-		if value, ok := WOPIFiles[strings.ToLower(fileInfo.Extension)]; ok {
+		if value, ok := WopiFiles[strings.ToLower(fileInfo.Extension)]; ok {
 			file := CollaboraFileInfo{
 				fileInfo.Id,
 				fileInfo.Name,
@@ -81,13 +108,16 @@ func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// returnWopiFileList returns the list with file extensions and actions associated with these files
 func (p *Plugin) returnWopiFileList(w http.ResponseWriter, r *http.Request) {
-	responseJSON, _ := json.Marshal(WOPIFiles)
+	responseJSON, _ := json.Marshal(WopiFiles)
 	if _, err := w.Write(responseJSON); err != nil {
 		p.API.LogError("failed to write status", "err", err.Error())
 	}
 }
 
+// returnCollaboraOnlineFileURL returns the URL and token that the client will use to
+// load Collabora Online in the iframe
 func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Request) {
 	//retrieve fileID and file info
 	queryFileID, ok := r.URL.Query()["file_id"]
@@ -102,8 +132,8 @@ func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	wopiURL := WOPIFiles[strings.ToLower(file.Extension)].URL + "WOPISrc=" + *p.API.GetConfig().ServiceSettings.SiteURL + "/plugins/" + manifest.Id + "/wopi/files/" + fileID
-	wopiToken := EncodeToken(r.Header.Get("Mattermost-User-Id"), fileID, p)
+	wopiURL := WopiFiles[strings.ToLower(file.Extension)].URL + "WOPISrc=" + p.getBaseAPIURL() + "/wopi/files/" + fileID
+	wopiToken := p.EncodeToken(r.Header.Get(HeaderMattermostUserID), fileID)
 
 	response := struct {
 		URL         string `json:"url"`
@@ -118,9 +148,10 @@ func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Req
 	}
 }
 
+// parseWopiRequests is used by Collabora Online server to get/save the contents of a file
 func (p *Plugin) parseWopiRequests(w http.ResponseWriter, r *http.Request) {
-	splitURL := strings.Split(r.URL.Path, "/")
-	fileID := splitURL[len(splitURL)-2] //the segment before last segment is the file url
+	params := mux.Vars(r)
+	fileID := params["fileID"]
 
 	token, tokenErr := getAccessTokenFromURI(r.RequestURI)
 	if tokenErr != nil {
@@ -128,7 +159,7 @@ func (p *Plugin) parseWopiRequests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wopiToken, isValid := DecodeToken(token, p)
+	wopiToken, isValid := p.DecodeToken(token)
 	if !isValid || wopiToken.FileID != fileID {
 		p.API.LogError("Invalid token.")
 		return
@@ -199,11 +230,11 @@ func (p *Plugin) parseWopiRequests(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// returnFileInfoForWOPI returns the file information
+// returnWopiFileInfo returns the file information, used by Collabora Online
 // see: http://wopi.readthedocs.io/projects/wopirest/en/latest/files/CheckFileInfo.html#checkfileinfo
-func (p *Plugin) returnFileInfoForWOPI(w http.ResponseWriter, r *http.Request) {
-	splitURL := strings.Split(r.URL.Path, "/")
-	fileID := splitURL[len(splitURL)-1]
+func (p *Plugin) returnWopiFileInfo(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	fileID := params["fileID"]
 
 	token, tokenErr := getAccessTokenFromURI(r.RequestURI)
 	if tokenErr != nil {
@@ -211,7 +242,7 @@ func (p *Plugin) returnFileInfoForWOPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wopiToken, isValid := DecodeToken(token, p)
+	wopiToken, isValid := p.DecodeToken(token)
 	if !isValid || wopiToken.FileID != fileID {
 		p.API.LogError("Collabora Online called the plugin with an invalid token.")
 		return
@@ -235,7 +266,7 @@ func (p *Plugin) returnFileInfoForWOPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wopiFileInfo := WOPICheckFileInfo{
+	wopiFileInfo := WopiCheckFileInfo{
 		BaseFileName:            fileInfo.Name,
 		Size:                    fileInfo.Size,
 		OwnerID:                 post.UserId,
@@ -253,23 +284,14 @@ func (p *Plugin) returnFileInfoForWOPI(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *Plugin) serveAsset(w http.ResponseWriter, r *http.Request) {
-	splitURL := strings.Split(r.URL.Path, "/")
-	fileName := splitURL[len(splitURL)-1] //last segment is the file name
-
-	bundlePath, bundlePathError := p.API.GetBundlePath()
-	if bundlePathError != nil {
-		p.API.LogError("Error when getting bundle path: " + bundlePathError.Error())
+// handleStaticFiles handles the static files under the assets directory.
+func (p *Plugin) handleStaticFiles(r *mux.Router) {
+	bundlePath, err := p.API.GetBundlePath()
+	if err != nil {
+		p.API.LogWarn("Failed to get bundle path.", "Error", err.Error())
 		return
 	}
 
-	asset, assetError := ioutil.ReadFile(filepath.Join(bundlePath, "assets", fileName))
-	if assetError != nil {
-		p.API.LogError("Error when loading assets: " + assetError.Error())
-		return
-	}
-
-	if _, err := w.Write(asset); err != nil {
-		p.API.LogError("failed to write status", "err", err.Error())
-	}
+	// This will serve static files from the 'assets' directory under '/assets/<filename>'
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(bundlePath, "assets")))))
 }

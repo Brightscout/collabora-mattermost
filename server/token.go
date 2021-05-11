@@ -11,15 +11,6 @@ import (
 var kvEncryptionPassword = "encryptionPassword"
 var fallbackPassword = "" //if the plugin fails to save password to KV, this fallback password will be used
 
-//WOPIToken is the token used for WOPI authentication.
-//When a user wants to open a file with Collabora Online this token is passed to Collabora Online
-//Collabora Online will use this token when it loads/saves a file
-type WOPIToken struct {
-	UserID string `json:"userId"`
-	FileID string `json:"fileId"`
-	jwt.StandardClaims
-}
-
 //GenerateEncryptionPassword generates a password for encrypting the tokens
 //This method is called from main, and will generate a password only the first time when the plugin is loaded
 func (p *Plugin) GenerateEncryptionPassword() {
@@ -51,7 +42,7 @@ func (p *Plugin) GenerateEncryptionPassword() {
 	}
 }
 
-func getEncryptionPassword(p *Plugin) []byte {
+func (p *Plugin) getEncryptionPassword() []byte {
 	//if the fallbackPassword is set this means the plugin cannot read from KV pair
 	if fallbackPassword != "" {
 		return []byte(fallbackPassword)
@@ -62,12 +53,12 @@ func getEncryptionPassword(p *Plugin) []byte {
 }
 
 //EncodeToken creates a token for WOPI
-func EncodeToken(userID string, fileID string, p *Plugin) string {
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), &WOPIToken{
+func (p *Plugin) EncodeToken(userID string, fileID string) string {
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), &WopiToken{
 		UserID: userID,
 		FileID: fileID,
 	})
-	signedString, err := token.SignedString(getEncryptionPassword(p))
+	signedString, err := token.SignedString(p.getEncryptionPassword())
 	if err != nil {
 		p.API.LogError("Failed to encode WOPI token", "Error", err.Error())
 		return ""
@@ -75,16 +66,16 @@ func EncodeToken(userID string, fileID string, p *Plugin) string {
 	return signedString
 }
 
-//DecodeToken decodes a token string an returns WOPIToken and isValid
-func DecodeToken(tokenString string, p *Plugin) (WOPIToken, bool) {
-	wopiToken := WOPIToken{}
+//DecodeToken decodes a token string an returns WopiToken and isValid
+func (p *Plugin) DecodeToken(tokenString string) (WopiToken, bool) {
+	wopiToken := WopiToken{}
 	_, err := jwt.ParseWithClaims(tokenString, &wopiToken, func(token *jwt.Token) (interface{}, error) {
-		return getEncryptionPassword(p), nil
+		return p.getEncryptionPassword(), nil
 	})
 
 	if err != nil {
 		p.API.LogError("Failed to decode WOPI token", "Error", err.Error())
-		return WOPIToken{}, false
+		return WopiToken{}, false
 	}
 
 	return wopiToken, true
