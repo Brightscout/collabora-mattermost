@@ -2,7 +2,6 @@
 package main
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 )
 
@@ -11,29 +10,25 @@ var (
 )
 
 // KVEnsure makes sure the initial value for a key is set to the value provided, if it does not already exists
-// Returns the value set for the key in kv-store and error
-func (p *Plugin) KVEnsure(key string, newValue []byte) ([]byte, error) {
-	value, err := p.KVLoad(key)
-	switch err {
+// Returns whether the value was set and error
+func (p *Plugin) KVEnsure(key string, newValue []byte) (bool, error) {
+	_, loadErr := p.KVLoad(key)
+	switch loadErr {
 	case nil:
-		return value, nil
+		// value already set
+		return false, nil
 	case ErrNotFound:
 		break
 	default:
-		return nil, err
+		return false, loadErr
 	}
 
-	err = p.KVStore(key, newValue)
+	ok, err := p.API.KVCompareAndSet(key, nil, newValue)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	// Load again in case we lost the race to another server
-	value, err = p.KVLoad(key)
-	if err != nil {
-		return newValue, nil
-	}
-	return value, nil
+	return ok, nil
 }
 
 func (p *Plugin) KVLoad(key string) ([]byte, error) {
@@ -45,12 +40,4 @@ func (p *Plugin) KVLoad(key string) ([]byte, error) {
 		return nil, ErrNotFound
 	}
 	return data, nil
-}
-
-func (p *Plugin) KVStore(key string, data []byte) error {
-	var appErr *model.AppError
-	if appErr = p.API.KVSet(key, data); appErr != nil {
-		return errors.WithMessagef(appErr, "failed plugin KVSet %q", key)
-	}
-	return nil
 }

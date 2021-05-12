@@ -18,10 +18,14 @@ var (
 //This method is called from plugin.go, and will generate a password only the first time when the plugin is loaded
 func (p *Plugin) EnsureEncryptionPassword() {
 	password := GenerateEncryptionPassword()
-	if _, err := p.KVEnsure(kvEncryptionPasswordKey, []byte(password)); err != nil {
+	ok, err := p.KVEnsure(kvEncryptionPasswordKey, []byte(password))
+	if err != nil {
 		p.API.LogError("Failed to set an encryption password for the plugin, fallback password will be used.", "Error", err.Error())
 		fallbackPassword = password
 		return
+	}
+	if !ok {
+		p.API.LogWarn("Skipped write since already set by another plugin instance.")
 	}
 }
 
