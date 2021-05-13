@@ -11,10 +11,14 @@ import FullScreenModal from 'components/file_preview/full_screen_modal';
 import WopiFilePreview from 'components/file_preview/wopi_file_preview';
 import FilePreviewHeader from 'components/file_preview/file_preview_header';
 
+type FilePreviewModalSelector = {
+    visible: boolean;
+    fileInfo: FileInfo;
+}
+
 const FilePreviewModal: FC = () => {
     const dispatch = useDispatch();
-    const visible = useSelector(filePreviewModal)?.visible;
-    const fileInfo: FileInfo = useSelector(filePreviewModal)?.fileInfo;
+    const {visible, fileInfo}: FilePreviewModalSelector = useSelector(filePreviewModal);
 
     const handleClose = useCallback((e?: Event): void => {
         if (e && e.preventDefault) {
