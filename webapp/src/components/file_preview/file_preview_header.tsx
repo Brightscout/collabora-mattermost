@@ -22,7 +22,7 @@ type Props = {
 export const FilePreviewHeader: FC<Props> = ({fileInfo, onClose}: Props) => {
     const post = useSelector((state: GlobalState) => getPost(state, fileInfo.post_id || ''));
     const channel = useSelector((state: GlobalState) => getChannel(state, post?.channel_id));
-    let channelName: React.ReactNode = channel?.display_name;
+    let channelName: React.ReactNode = channel?.display_name || '';
     if (channel?.type === 'D') {
         channelName = 'Direct Message';
     } else if (channel?.type === 'G') {
