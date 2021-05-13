@@ -2,8 +2,8 @@ import React from 'react';
 import {CSSTransition} from 'react-transition-group';
 import clsx from 'clsx';
 
-import BackIcon from 'components/back_icon';
-import CloseIcon from 'components/close_icon';
+import BackIcon from 'components/file_preview/back_icon';
+import CloseIcon from 'components/file_preview/close_icon';
 
 // This must be on sync with the animation time in mattermost-webapp's full_screen_modal.scss
 const ANIMATION_DURATION = 100;
@@ -11,7 +11,7 @@ const ANIMATION_DURATION = 100;
 type Props = {
     compact?: boolean;
     show: boolean;
-    onClose: () => void;
+    onClose?: () => void;
     onGoBack?: () => void;
     children: React.ReactNode;
     ariaLabel?: string;
@@ -48,7 +48,7 @@ class FullScreenModal extends React.PureComponent<Props> {
     }
 
     close = () => {
-        this.props.onClose();
+        return this.props.onClose?.();
     }
 
     render() {
@@ -79,12 +79,14 @@ class FullScreenModal extends React.PureComponent<Props> {
                                 aria-label={'Back'}
                             />
                         )}
-                        <CloseIcon
-                            id='closeIcon'
-                            onClick={this.close}
-                            className='close-x'
-                            aria-label={'Close'}
-                        />
+                        {this.props.onClose && (
+                            <CloseIcon
+                                id='closeIcon'
+                                onClick={this.close}
+                                className='close-x'
+                                aria-label={'Close'}
+                            />
+                        )}
                         {this.props.children}
                     </div>
                     <div

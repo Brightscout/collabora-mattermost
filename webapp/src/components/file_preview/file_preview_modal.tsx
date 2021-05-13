@@ -6,8 +6,10 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {closeFilePreview} from 'actions/preview';
 import {filePreviewModal} from 'selectors';
-import FullScreenModal from 'components/full_screen_modal';
-import WopiFilePreview from 'components/wopi_file_preview';
+
+import FullScreenModal from 'components/file_preview/full_screen_modal';
+import WopiFilePreview from 'components/file_preview/wopi_file_preview';
+import FilePreviewHeader from 'components/file_preview/file_preview_header';
 
 const FilePreviewModal: FC = () => {
     const dispatch = useDispatch();
@@ -26,8 +28,11 @@ const FilePreviewModal: FC = () => {
         <FullScreenModal
             compact={true}
             show={visible}
-            onClose={handleClose}
         >
+            <FilePreviewHeader
+                fileInfo={fileInfo}
+                onClose={handleClose}
+            />
             <WopiFilePreview fileInfo={fileInfo}/>
         </FullScreenModal>
     );

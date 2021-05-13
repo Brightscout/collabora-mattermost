@@ -9,7 +9,7 @@ type Props = {
     fileInfo: FileInfo;
 }
 
-export const CollaboraPreview: FC<Props> = (props: Props) => {
+export const FilePreviewOverride: FC<Props> = (props: Props) => {
     const dispatch = useDispatch();
     const openFilePreview = useCallback(() => {
         dispatch(showFilePreview(props.fileInfo));
@@ -22,4 +22,4 @@ export const CollaboraPreview: FC<Props> = (props: Props) => {
     );
 };
 
-export default CollaboraPreview;
+export default FilePreviewOverride;
