@@ -7,11 +7,17 @@ import {Options} from 'mattermost-redux/types/client4';
 import {id as pluginId} from '../manifest';
 
 export default class Client {
+    apiURL: string;
     baseURL: string;
 
     constructor() {
+        this.apiURL = '/api/v4';
         this.baseURL = `/plugins/${pluginId}/api/v1`;
     }
+
+    getFileUrl = (fileID: string) => {
+        return `${this.apiURL}/files/${fileID}`;
+    };
 
     getWopiFilesList = () => {
         // fetch wopiFiles, a JSON with file extensions, actions (view/edit) and the Collabora Online URL where the action is done

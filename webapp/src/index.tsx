@@ -8,8 +8,8 @@ import {FileInfo} from 'mattermost-redux/types/files';
 
 import {id as pluginId} from './manifest';
 
-import CollaboraPreview from './components/collabora_preview';
-import FilePreviewModal from './components/file_preview_modal';
+import FilePreviewOverride from './components/file_preview_override';
+import FilePreviewModal from './components/file_preview/file_preview_modal';
 
 import {getWopiFilesList} from './actions/wopi';
 import {wopiFilesList} from './selectors';
@@ -25,7 +25,7 @@ export default class Plugin {
                 const wopiFiles = wopiFilesList(state);
                 return Boolean(wopiFiles?.[fileInfo.extension]);
             },
-            CollaboraPreview,
+            FilePreviewOverride,
         );
 
         // @ts-ignore ThunkActions dont work properly
