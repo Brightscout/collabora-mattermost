@@ -90,10 +90,16 @@ func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 	body, bodyReadError := ioutil.ReadAll(r.Body)
 	if bodyReadError != nil {
 		p.API.LogError("Error when reading body: ", bodyReadError.Error())
+		http.Error(w, bodyReadError.Error(), http.StatusBadRequest)
 		return
 	}
+
 	var fileIDs []string
-	_ = json.Unmarshal(body, &fileIDs)
+	if err := json.Unmarshal(body, &fileIDs); err != nil {
+		p.API.LogError("Failed to unmarshal request body: ", err.Error())
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	//create an array with more detailed file info for each file
 	files := make([]ClientFileInfo, 0, len(fileIDs))
@@ -117,17 +123,13 @@ func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 	responseJSON, _ := json.Marshal(files)
 
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write(responseJSON); err != nil {
-		p.API.LogError("failed to write status", "err", err.Error())
-	}
+	_, _ = w.Write(responseJSON)
 }
 
 // returnWopiFileList returns the list with file extensions and actions associated with these files
 func (p *Plugin) returnWopiFileList(w http.ResponseWriter, _ *http.Request) {
 	responseJSON, _ := json.Marshal(WopiFiles)
-	if _, err := w.Write(responseJSON); err != nil {
-		p.API.LogError("failed to write status", "err", err.Error())
-	}
+	_, _ = w.Write(responseJSON)
 }
 
 // returnCollaboraOnlineFileURL returns the URL and token that the client will use to
@@ -159,9 +161,7 @@ func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Req
 	responseJSON, _ := json.Marshal(response)
 
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write(responseJSON); err != nil {
-		p.API.LogError("failed to write status", "err", err.Error())
-	}
+	_, _ = w.Write(responseJSON)
 }
 
 // getWopiFileContents is used by Collabora Online server to get the contents of a file
@@ -206,9 +206,7 @@ func (p *Plugin) getWopiFileContents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//send file to Collabora Online
-	if _, err := w.Write(fileContent); err != nil {
-		p.API.LogError("failed to write status", "err", err.Error())
-	}
+	_, _ = w.Write(fileContent)
 }
 
 // saveWopiFileContents is used by Collabora Online server to save the updated contents of a file
@@ -310,7 +308,5 @@ func (p *Plugin) returnWopiFileInfo(w http.ResponseWriter, r *http.Request) {
 	responseJSON, _ := json.Marshal(wopiFileInfo)
 
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write(responseJSON); err != nil {
-		p.API.LogError("failed to write status", "err", err.Error())
-	}
+	_, _ = w.Write(responseJSON)
 }
