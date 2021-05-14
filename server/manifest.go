@@ -46,7 +46,7 @@ const manifestStr = `
         "type": "bool",
         "help_text": "Enable if your Collabora Online server uses a self signed certificate.",
         "placeholder": "",
-        "default": false
+        "default": null
       }
     ]
   }
