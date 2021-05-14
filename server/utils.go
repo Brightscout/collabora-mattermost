@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/tls"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"net/url"
