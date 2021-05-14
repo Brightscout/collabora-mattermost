@@ -294,14 +294,14 @@ func (p *Plugin) returnWopiFileInfo(w http.ResponseWriter, r *http.Request) {
 
 	fileInfo, fileInfoErr := p.API.GetFileInfo(fileID)
 	if fileInfoErr != nil {
-		p.API.LogError("Error retrieving file info, fileID: " + fileID, "Error", fileInfoErr.Error())
+		p.API.LogError("Error retrieving file info, fileID: "+fileID, "Error", fileInfoErr.Error())
 		http.Error(w, fileInfoErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	post, postErr := p.API.GetPost(fileInfo.PostId)
 	if postErr != nil {
-		p.API.LogError("Error retrieving file's post, postId: " + fileInfo.PostId, "Error", postErr.Error())
+		p.API.LogError("Error retrieving file's post, postId: "+fileInfo.PostId, "Error", postErr.Error())
 		http.Error(w, postErr.Error(), http.StatusInternalServerError)
 		return
 	}
