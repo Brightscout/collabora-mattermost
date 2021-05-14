@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -40,6 +41,13 @@ func (p *Plugin) InitAPI() *mux.Router {
 
 func (p *Plugin) getBaseAPIURL() string {
 	return *p.API.GetConfig().ServiceSettings.SiteURL + "/plugins/" + manifest.Id + "/api/v1"
+}
+
+func returnStatusOK(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	m := make(map[string]string)
+	m[model.STATUS] = model.STATUS_OK
+	_, _ = w.Write([]byte(model.MapToJson(m)))
 }
 
 // withRecovery allows recovery from panics
@@ -121,7 +129,6 @@ func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responseJSON, _ := json.Marshal(files)
-
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(responseJSON)
 }
@@ -159,7 +166,6 @@ func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Req
 	}{wopiURL, wopiToken}
 
 	responseJSON, _ := json.Marshal(response)
-
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(responseJSON)
 }
@@ -172,36 +178,35 @@ func (p *Plugin) getWopiFileContents(w http.ResponseWriter, r *http.Request) {
 	wopiToken, tokenErr := p.GetWopiTokenFromURI(r.RequestURI)
 	if tokenErr != nil || wopiToken.FileID != fileID {
 		p.API.LogError(fmt.Sprintf("Invalid token. Error: %v", tokenErr))
+		http.Error(w, "Invalid token.", http.StatusBadRequest)
 		return
 	}
 
 	fileInfo, fileInfoError := p.API.GetFileInfo(fileID)
 	if fileInfoError != nil {
 		p.API.LogError("Error occurred when retrieving file info: " + fileInfoError.Error())
+		http.Error(w, fileInfoError.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	postInfo, postInfoError := p.API.GetPost(fileInfo.PostId)
-	if postInfoError != nil {
-		p.API.LogError("Error occurred when retrieving post info for file: " + postInfoError.Error())
+	post, postError := p.API.GetPost(fileInfo.PostId)
+	if postError != nil {
+		p.API.LogError("Error occurred when retrieving post info for file: " + postError.Error())
+		http.Error(w, postError.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	//check if user has access to the channel where the file was sent
-	//p.API.HasPermissionToChannel(userID,channelID) was returning false for some reason...
-	members, channelMembersError := p.API.GetChannelMembersByIds(postInfo.ChannelId, []string{wopiToken.UserID})
-	if channelMembersError != nil {
-		p.API.LogError("Error occurred when retrieving channel members.", "Error", channelMembersError.Error())
-		return
-	}
-	if members == nil {
-		p.API.LogError("User doesn't have access to the channel where the file was sent.")
+	if !p.API.HasPermissionToChannel(wopiToken.UserID, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		p.API.LogError("User: " + wopiToken.UserID + " does not have the appropriate permissions: PERMISSION_READ_CHANNEL. Channel: " + post.ChannelId)
+		http.Error(w, "You do not have the appropriate permissions.", http.StatusForbidden)
 		return
 	}
 
-	fileContent, err := p.API.GetFile(fileID)
-	if err != nil {
+	fileContent, getFileErr := p.API.GetFile(fileID)
+	if getFileErr != nil {
 		p.API.LogError("Error retrieving file info, fileID: " + fileID)
+		http.Error(w, getFileErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -217,30 +222,28 @@ func (p *Plugin) saveWopiFileContents(w http.ResponseWriter, r *http.Request) {
 	wopiToken, tokenErr := p.GetWopiTokenFromURI(r.RequestURI)
 	if tokenErr != nil || wopiToken.FileID != fileID {
 		p.API.LogError(fmt.Sprintf("Invalid token. Error: %v", tokenErr))
+		http.Error(w, "Invalid token.", http.StatusBadRequest)
 		return
 	}
 
 	fileInfo, fileInfoError := p.API.GetFileInfo(fileID)
 	if fileInfoError != nil {
 		p.API.LogError("Error occurred when retrieving file info: " + fileInfoError.Error())
+		http.Error(w, fileInfoError.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	postInfo, postInfoError := p.API.GetPost(fileInfo.PostId)
-	if postInfoError != nil {
-		p.API.LogError("Error occurred when retrieving post info for file: " + postInfoError.Error())
+	post, postError := p.API.GetPost(fileInfo.PostId)
+	if postError != nil {
+		p.API.LogError("Error occurred when retrieving post info for file: " + postError.Error())
+		http.Error(w, postError.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	//check if user has access to the channel where the file was sent
-	//p.API.HasPermissionToChannel(userID,channelID) was returning false for some reason...
-	members, channelMembersError := p.API.GetChannelMembersByIds(postInfo.ChannelId, []string{wopiToken.UserID})
-	if channelMembersError != nil {
-		p.API.LogError("Error occurred when retrieving channel members: " + channelMembersError.Error())
-		return
-	}
-	if members == nil {
-		p.API.LogError("User doesn't have access to the channel where the file was sent")
+	if !p.API.HasPermissionToChannel(wopiToken.UserID, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		p.API.LogError("User: " + wopiToken.UserID + " does not have the appropriate permissions: PERMISSION_READ_CHANNEL. Channel: " + post.ChannelId)
+		http.Error(w, "You do not have the appropriate permissions.", http.StatusForbidden)
 		return
 	}
 
@@ -256,13 +259,17 @@ func (p *Plugin) saveWopiFileContents(w http.ResponseWriter, r *http.Request) {
 	body, bodyReadError := ioutil.ReadAll(r.Body)
 	if bodyReadError != nil {
 		p.API.LogError("Error occurred when reading body:", bodyReadError.Error())
+		http.Error(w, bodyReadError.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if _, err := f.Write(body); err != nil {
 		p.API.LogError("Error occurred when writing contents to file: " + err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	returnStatusOK(w)
 }
 
 // returnWopiFileInfo returns the file information, used by Collabora Online
@@ -274,24 +281,28 @@ func (p *Plugin) returnWopiFileInfo(w http.ResponseWriter, r *http.Request) {
 	wopiToken, tokenErr := p.GetWopiTokenFromURI(r.RequestURI)
 	if tokenErr != nil || wopiToken.FileID != fileID {
 		p.API.LogError(fmt.Sprintf("Invalid token. Error: %v", tokenErr))
+		http.Error(w, "Invalid token.", http.StatusBadRequest)
 		return
 	}
 
 	user, userErr := p.API.GetUser(wopiToken.UserID)
 	if userErr != nil {
-		p.API.LogError("Error retrieving user. Token UserID is corrupted or the user doesn't exist.")
+		p.API.LogError("Error retrieving user. Token UserID is corrupted or the user doesn't exist.", "Error", userErr.Error())
+		http.Error(w, userErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fileInfo, err := p.API.GetFileInfo(fileID)
-	if err != nil {
-		p.API.LogError("Error retrieving file info, fileID: " + fileID)
+	fileInfo, fileInfoErr := p.API.GetFileInfo(fileID)
+	if fileInfoErr != nil {
+		p.API.LogError("Error retrieving file info, fileID: " + fileID, "Error", fileInfoErr.Error())
+		http.Error(w, fileInfoErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	post, postErr := p.API.GetPost(fileInfo.PostId)
 	if postErr != nil {
-		p.API.LogError("Error retrieving file's post, postId: " + fileInfo.PostId)
+		p.API.LogError("Error retrieving file's post, postId: " + fileInfo.PostId, "Error", postErr.Error())
+		http.Error(w, postErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -300,13 +311,12 @@ func (p *Plugin) returnWopiFileInfo(w http.ResponseWriter, r *http.Request) {
 		Size:                    fileInfo.Size,
 		OwnerID:                 post.UserId,
 		UserID:                  user.Id,
-		UserFriendlyName:        user.GetFullName(),
+		UserFriendlyName:        user.GetDisplayName(model.SHOW_FULLNAME),
 		UserCanWrite:            true,
 		UserCanNotWriteRelative: true,
 	}
 
 	responseJSON, _ := json.Marshal(wopiFileInfo)
-
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(responseJSON)
 }

@@ -114,6 +114,7 @@ export const FilePreviewHeader: FC<Props> = ({fileInfo, onClose}: Props) => {
                             border: 0,
                             width: 40,
                             height: 40,
+                            padding: 4,
                             borderRadius: 4,
                             marginBottom: 5,
                             alignItems: 'center',
@@ -133,7 +134,7 @@ export const FilePreviewHeader: FC<Props> = ({fileInfo, onClose}: Props) => {
                             width: 1,
                             height: 40,
                             backgroundColor: '#e1e1e1',
-                            margin: '0 8px',
+                            margin: '0 8px 6px',
                         }}
                     />
                     <CloseIcon
@@ -146,7 +147,7 @@ export const FilePreviewHeader: FC<Props> = ({fileInfo, onClose}: Props) => {
                             position: 'relative',
                             top: 'unset',
                             right: 'unset',
-                            height: 'unset',
+                            marginBottom: 5,
                         }}
                     />
                 </div>
