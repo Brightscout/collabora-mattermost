@@ -2,8 +2,8 @@ import React from 'react';
 import {CSSTransition} from 'react-transition-group';
 import clsx from 'clsx';
 
-import BackIcon from 'components/file_preview/back_icon';
-import CloseIcon from 'components/file_preview/close_icon';
+import BackIcon from 'components/back_icon';
+import CloseIcon from 'components/close_icon';
 
 // This must be on sync with the animation time in mattermost-webapp's full_screen_modal.scss
 const ANIMATION_DURATION = 100;

@@ -4,7 +4,7 @@ import {useSelector} from 'react-redux';
 import {Button} from 'react-bootstrap';
 
 import {FileInfo} from 'mattermost-redux/types/files';
-import {GlobalState} from 'mattermost-webapp/types/store';
+import {GlobalState} from 'mattermost-redux/types/store';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
