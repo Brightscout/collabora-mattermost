@@ -89,6 +89,7 @@ make deploy
 
 - Q. Failed to read document from storage. Please contact your storage server administrator.  
   A. Make sure you are running both Mattermost and Collabora Server with the same protocol (http/https).
+     Check your Mattermost logs for more information.
 
 - Q. CollaboraOnline Server URL in the system console does not get updated.
   A. You need to disable and re-enable the plugin for the server URL changes to take effect.

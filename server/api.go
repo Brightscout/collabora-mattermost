@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
@@ -248,23 +247,8 @@ func (p *Plugin) saveWopiFileContents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//save file received from Collabora Online
-	filePath := filepath.Join(*p.API.GetConfig().FileSettings.Directory, fileInfo.Path)
-	f, fileCreateError := os.Create(filePath)
-	if fileCreateError != nil {
-		p.API.LogError("Error occurred when creating new file: ", fileCreateError.Error())
-		return
-	}
-	defer f.Close()
-
-	body, bodyReadError := ioutil.ReadAll(r.Body)
-	if bodyReadError != nil {
-		p.API.LogError("Error occurred when reading body:", bodyReadError.Error())
-		http.Error(w, bodyReadError.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if _, err := f.Write(body); err != nil {
-		p.API.LogError("Error occurred when writing contents to file: " + err.Error())
+	if _, err := p.WriteFile(r.Body, fileInfo.Path); err != nil {
+		p.API.LogError("Failed to save the updated file contents.", "Error", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
