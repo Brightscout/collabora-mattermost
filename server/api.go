@@ -11,6 +11,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/v5/model"
+
+	root "github.com/CollaboraOnline/collabora-mattermost"
 )
 
 const (
@@ -39,7 +41,7 @@ func (p *Plugin) InitAPI() *mux.Router {
 }
 
 func (p *Plugin) getBaseAPIURL() string {
-	return *p.API.GetConfig().ServiceSettings.SiteURL + "/plugins/" + manifest.Id + "/api/v1"
+	return *p.API.GetConfig().ServiceSettings.SiteURL + "/plugins/" + root.Manifest.Id + "/api/v1"
 }
 
 func returnStatusOK(w http.ResponseWriter) {
