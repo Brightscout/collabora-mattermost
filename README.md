@@ -55,6 +55,9 @@ docker run -t -d -p 127.0.0.1:9980:9980 -p [::1]:9980:9980 -e 'domain=my\\.-loca
 
 1. The `domain` environment variable should point to the Mattermost server's IP address and not the Collabora Server.
 
+1. If you are using a self-signed certificate with mattermost running over `https`, you must enable `Disable certificate verification` system console setting 
+   and accept the security risk in the browser to be able to preview files.
+
 ## Building the plugin
 
 - Make sure you have following components installed:
