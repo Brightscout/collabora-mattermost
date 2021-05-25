@@ -26,8 +26,8 @@ var (
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
-	WOPIAddress                 string
-	SkipCertificateVerification bool
+	WOPIAddress       string
+	SkipSSLCertVerify bool
 }
 
 // Clone deep copies the configuration
