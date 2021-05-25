@@ -54,8 +54,8 @@ func (p *Plugin) GetHTTPClient() *http.Client {
 	config := p.getConfiguration()
 	customTransport := http.DefaultTransport.(*http.Transport).Clone()
 
-	fmt.Println("Skip Cert Verification::", config.SkipSSLCertVerify, "!!!!!!!!!!!!!!!!!!!!!!!!!1")
-	if config.SkipSSLCertVerify {
+	fmt.Println("Skip SSL Verify::", config.SkipSSLVerify, "!!!!!!!!!!!!!!!!!!!!!!!!!1")
+	if config.SkipSSLVerify {
 		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 

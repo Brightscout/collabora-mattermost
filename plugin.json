@@ -27,7 +27,7 @@
                 "default": ""
             },
             {
-                "key": "SkipSSLCertVerify",
+                "key": "SkipSSLVerify",
                 "type": "bool",
                 "display_name": "Disable certificate verification (insecure):",
                 "help_text": "Enable if your Collabora Online server uses a self signed certificate.",
