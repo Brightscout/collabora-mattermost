@@ -95,7 +95,7 @@ func handleAuthRequired(handleFunc func(w http.ResponseWriter, r *http.Request))
 // parseFileIDs sends the file info to the client (name, extension and id) for each file
 // body contains an array with file ids in JSON format
 func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
-	//extract fileIDs array from body
+	// extract fileIDs array from body
 	body, bodyReadError := ioutil.ReadAll(r.Body)
 	if bodyReadError != nil {
 		p.API.LogError("Error when reading body: ", bodyReadError.Error())
@@ -110,7 +110,7 @@ func (p *Plugin) parseFileIDs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//create an array with more detailed file info for each file
+	// create an array with more detailed file info for each file
 	files := make([]ClientFileInfo, 0, len(fileIDs))
 	for _, fileID := range fileIDs {
 		fileInfo, fileInfoError := p.API.GetFileInfo(fileID)
@@ -143,7 +143,7 @@ func (p *Plugin) returnWopiFileList(w http.ResponseWriter, _ *http.Request) {
 // returnCollaboraOnlineFileURL returns the URL and token that the client will use to
 // load Collabora Online in the iframe
 func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Request) {
-	//retrieve fileID and file info
+	// retrieve fileID and file info
 	fileID := r.URL.Query().Get("file_id")
 	if fileID == "" {
 		p.API.LogError("file_id query parameter missing!")
