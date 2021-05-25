@@ -52,7 +52,8 @@ func GenerateEncryptionPassword() string {
 func (p *Plugin) GetHTTPClient() *http.Client {
 	config := p.getConfiguration()
 	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	if config.DisableCertificateVerification {
+
+	if config.SkipSSLVerify {
 		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
