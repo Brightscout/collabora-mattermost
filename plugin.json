@@ -31,6 +31,15 @@
                 "type": "bool",
                 "display_name": "Disable certificate verification (insecure):",
                 "help_text": "Enable if your Collabora Online server uses a self signed certificate."
+            },
+            {
+                "key": "EncryptionKey",
+                "display_name": "Token Encryption Key:",
+                "type": "generated",
+                "help_text": "The encryption key used to encrypt Collabora Online server access tokens.",
+                "regenerate_help_text": "Regenerates the encryption key for Collabora Online server. Regenerating this key invalidates any existing wopi file preview/edit sessions.",
+                "placeholder": "",
+                "default": null
             }
         ]
     }
