@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/tls"
-	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
@@ -51,13 +50,12 @@ func GenerateEncryptionPassword() string {
 }
 
 func (p *Plugin) GetHTTPClient() *http.Client {
-	config := p.getConfiguration()
+	//config := p.getConfiguration()
 	customTransport := http.DefaultTransport.(*http.Transport).Clone()
 
-	fmt.Println("Skip SSL Verify::", config.SkipSSLVerify, "!!!!!!!!!!!!!!!!!!!!!!!!!1")
-	if config.SkipSSLVerify {
-		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	}
+	//if config.SkipSSLVerify {
+	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	//}
 
 	client := &http.Client{Transport: customTransport}
 	return client
