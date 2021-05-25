@@ -20,16 +20,16 @@
         "settings": [
             {
                 "key": "WOPIAddress",
-                "display_name": "Collabora Online Address:",
                 "type": "text",
+                "display_name": "Collabora Online Address:",
                 "help_text": "Collabora Online requires a separate server acting as a WOPI-like Client to provide editing capabilities. Please configure a Collabora Online server to start editing documents.",
                 "placeholder": "URL",
                 "default": ""
             },
             {
                 "key": "SkipSSLCertVerify",
-                "display_name": "Disable certificate verification (insecure):",
                 "type": "bool",
+                "display_name": "Disable certificate verification (insecure):",
                 "help_text": "Enable if your Collabora Online server uses a self signed certificate."
             }
         ]
