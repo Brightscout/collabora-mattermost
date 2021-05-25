@@ -163,7 +163,7 @@ func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Req
 
 	response := struct {
 		URL         string `json:"url"`
-		AccessToken string `json:"access_token"` //client will pass this token as a POST parameter to Collabora Online when loading the iframe
+		AccessToken string `json:"access_token"` // client will pass this token as a POST parameter to Collabora Online when loading the iframe
 	}{wopiURL, wopiToken}
 
 	responseJSON, _ := json.Marshal(response)
@@ -197,7 +197,7 @@ func (p *Plugin) getWopiFileContents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//check if user has access to the channel where the file was sent
+	// check if user has access to the channel where the file was sent
 	if !p.API.HasPermissionToChannel(wopiToken.UserID, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
 		p.API.LogError("User: " + wopiToken.UserID + " does not have the appropriate permissions: PERMISSION_READ_CHANNEL. Channel: " + post.ChannelId)
 		http.Error(w, "You do not have the appropriate permissions.", http.StatusForbidden)
@@ -211,7 +211,7 @@ func (p *Plugin) getWopiFileContents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//send file to Collabora Online
+	// send file to Collabora Online
 	_, _ = w.Write(fileContent)
 }
 
@@ -241,14 +241,14 @@ func (p *Plugin) saveWopiFileContents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//check if user has access to the channel where the file was sent
+	// check if user has access to the channel where the file was sent
 	if !p.API.HasPermissionToChannel(wopiToken.UserID, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
 		p.API.LogError("User: " + wopiToken.UserID + " does not have the appropriate permissions: PERMISSION_READ_CHANNEL. Channel: " + post.ChannelId)
 		http.Error(w, "You do not have the appropriate permissions.", http.StatusForbidden)
 		return
 	}
 
-	//save file received from Collabora Online
+	// save file received from Collabora Online
 	if _, err := p.WriteFile(r.Body, fileInfo.Path); err != nil {
 		p.API.LogError("Failed to save the updated file contents.", "Error", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -259,7 +259,7 @@ func (p *Plugin) saveWopiFileContents(w http.ResponseWriter, r *http.Request) {
 }
 
 // returnWopiFileInfo returns the file information, used by Collabora Online
-// see: http://wopi.readthedocs.io/projects/wopirest/en/latest/files/CheckFileInfo.html#checkfileinfo
+// see: http:// wopi.readthedocs.io/projects/wopirest/en/latest/files/CheckFileInfo.html#checkfileinfo
 func (p *Plugin) returnWopiFileInfo(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	fileID := params["fileID"]
