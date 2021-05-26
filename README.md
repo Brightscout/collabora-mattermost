@@ -128,7 +128,7 @@ make deploy
 If developing a plugin with a webapp, watch for changes and deploy those automatically:
 ```
 export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
-export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
+export MM_ADMIN_TOKEN=<mm-admin-auth-token>
 make watch
 ```
 
@@ -145,7 +145,7 @@ make deploy
 or with a [personal access token](https://docs.mattermost.com/developer/personal-access-tokens.html):
 ```
 export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
-export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
+export MM_ADMIN_TOKEN=<mm-admin-auth-token>
 make deploy
 ```
 
