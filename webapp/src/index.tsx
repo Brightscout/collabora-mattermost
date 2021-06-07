@@ -18,6 +18,8 @@ import WopiFilePreview from 'components/wopi_file_preview';
 
 import {id as pluginId} from './manifest';
 
+import './components/styles.css';
+
 export default class Plugin {
     shouldShowPreview = (store: Store<GlobalState>, fileInfo: FileInfo) => {
         const state = store.getState();
@@ -45,6 +47,22 @@ export default class Plugin {
             this.shouldShowPreview.bind(null, store),
             'Edit with Collabora',
             (fileInfo: FileInfo) => dispatch(showFilePreview(fileInfo)),
+        );
+
+        registry.registerFileUploadMethod(
+            <span className='fa wopi-file-upload-icon icon-filetype-document'/>,
+            () => null,
+            'New document',
+        );
+        registry.registerFileUploadMethod(
+            <span className='fa wopi-file-upload-icon icon-filetype-spreadsheet'/>,
+            () => null,
+            'New spreadsheet',
+        );
+        registry.registerFileUploadMethod(
+            <span className='fa wopi-file-upload-icon icon-filetype-presentation'/>,
+            () => null,
+            'New presentation',
         );
     }
 }

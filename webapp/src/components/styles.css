@@ -69,3 +69,21 @@
     margin: 1em;
     font-size: xxx-large;
 }
+
+.wopi-file-upload-icon {
+    width: 15px;
+    height: 14px;
+    margin-bottom: -1px;
+}
+
+.wopi-file-upload-icon.icon-filetype-document {
+    background-image: url('../../../assets/img/x-office-document.svg')
+}
+
+.wopi-file-upload-icon.icon-filetype-spreadsheet {
+    background-image: url('../../../assets/img/x-office-spreadsheet.svg');
+}
+
+.wopi-file-upload-icon.icon-filetype-presentation {
+    background-image: url('../../../assets/img/x-office-presentation.svg');
+}
