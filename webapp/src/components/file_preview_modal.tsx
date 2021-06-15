@@ -1,11 +1,11 @@
-import React, {FC, useCallback} from 'react';
+import React, { FC, useCallback } from 'react';
 
-import {FileInfo} from 'mattermost-redux/types/files';
+import { FileInfo } from 'mattermost-redux/types/files';
 
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import {closeFilePreview} from 'actions/preview';
-import {filePreviewModal} from 'selectors';
+import { closeFilePreview } from 'actions/preview';
+import { filePreviewModal, videoMeetingInfo } from 'selectors';
 
 import FullScreenModal from 'components/full_screen_modal';
 import WopiFilePreview from 'components/wopi_file_preview';
@@ -16,9 +16,16 @@ type FilePreviewModalSelector = {
     fileInfo: FileInfo;
 }
 
+type VideoMeetingSelectror = {
+    channelID: string
+}
+
 const FilePreviewModal: FC = () => {
     const dispatch = useDispatch();
-    const {visible, fileInfo}: FilePreviewModalSelector = useSelector(filePreviewModal);
+    const { visible, fileInfo }: FilePreviewModalSelector = useSelector(filePreviewModal);
+    const videoMeetingState: VideoMeetingSelectror = useSelector(videoMeetingInfo);
+
+    const videoMeetingVisible = videoMeetingState && 'channelID' in videoMeetingState;
 
     const handleClose = useCallback((e?: Event): void => {
         if (e && e.preventDefault) {
@@ -31,7 +38,7 @@ const FilePreviewModal: FC = () => {
     return (
         <FullScreenModal
             compact={true}
-            show={visible}
+            show={visible && !videoMeetingVisible}
         >
             <FilePreviewHeader
                 fileInfo={fileInfo}
