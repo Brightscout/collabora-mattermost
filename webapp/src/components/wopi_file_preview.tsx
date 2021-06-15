@@ -9,12 +9,18 @@ import {getCollaboraFileURL} from 'actions/wopi';
 type Props = {
     editable: boolean;
     fileInfo: FileInfo;
+    setLoading?: (_: boolean) => void;
 }
 
 export const WopiFilePreview: FC<Props> = (props: Props) => {
     const dispatch = useDispatch();
     const [error, setError] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoadingState] = useState(false);
+
+    const setLoading = useCallback((currentlyLoading) => {
+        setLoadingState(currentlyLoading);
+        props.setLoading?.(currentlyLoading);
+    }, [props]);
 
     const handleWopiFile = useCallback(async (selectedFileID: string) => {
         //ask the server for the Collabora Online URL & token where the file will be edited
@@ -23,7 +29,7 @@ export const WopiFilePreview: FC<Props> = (props: Props) => {
         setLoading(true);
         setError(false);
         const dispatchResult = await dispatch(getCollaboraFileURL(selectedFileID) as any);
-        if ('error' in dispatchResult) {
+        if (dispatchResult.error) {
             setLoading(false);
             setError(true);
             return;

@@ -14,7 +14,7 @@ import {wopiFilesList} from 'selectors';
 import Reducer from 'reducers';
 
 import FilePreviewModal from 'components/file_preview_modal';
-import WopiFilePreview from 'components/wopi_file_preview';
+import FilePreviewComponent from 'components/file_preview_component';
 
 import {id as pluginId} from './manifest';
 
@@ -34,19 +34,21 @@ export default class Plugin {
         dispatch(getWopiFilesList());
         registry.registerFilePreviewComponent(
             this.shouldShowPreview.bind(null, store),
-            (props: {fileInfo: FileInfo}) => (
-                <WopiFilePreview
-                    fileInfo={props.fileInfo}
-                    editable={false}
-                />
-            ),
+            (props: {fileInfo: FileInfo}) => <FilePreviewComponent fileInfo={props.fileInfo}/>,
+        );
+
+        // ignore if registerFileDropdownMenuAction method does not exist
+        registry.registerFileDropdownMenuAction?.(
+            this.shouldShowPreview.bind(null, store),
+            'View with Collabora',
+            (fileInfo: FileInfo) => dispatch(showFilePreview(fileInfo, false)),
         );
 
         // ignore if registerFileDropdownMenuAction method does not exist
         registry.registerFileDropdownMenuAction?.(
             this.shouldShowPreview.bind(null, store),
             'Edit with Collabora',
-            (fileInfo: FileInfo) => dispatch(showFilePreview(fileInfo)),
+            (fileInfo: FileInfo) => dispatch(showFilePreview(fileInfo, true)),
         );
 
         registry.registerFileUploadMethod(
