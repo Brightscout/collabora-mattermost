@@ -8,6 +8,7 @@ import {PluginRegistry} from 'mattermost-webapp/plugins/registry';
 import {GlobalState} from 'mattermost-webapp/types/store';
 import {FileInfo} from 'mattermost-redux/types/files';
 
+import {showFileCreateModal} from 'actions/file';
 import {showFilePreview} from 'actions/preview';
 import {getWopiFilesList} from 'actions/wopi';
 import {wopiFilesList} from 'selectors';
@@ -15,6 +16,9 @@ import Reducer from 'reducers';
 
 import FilePreviewModal from 'components/file_preview_modal';
 import FilePreviewComponent from 'components/file_preview_component';
+import FileCreateModal from 'components/file_create_modal';
+
+import {TEMPLATE_TYPES} from './constants';
 
 import {id as pluginId} from './manifest';
 
@@ -30,6 +34,7 @@ export default class Plugin {
     public initialize(registry: PluginRegistry, store: Store<GlobalState>): void {
         registry.registerReducer(Reducer);
         registry.registerRootComponent(FilePreviewModal);
+        registry.registerRootComponent(FileCreateModal);
         const dispatch: ThunkDispatch<GlobalState, undefined, AnyAction> = store.dispatch;
         dispatch(getWopiFilesList());
         registry.registerFilePreviewComponent(
@@ -53,17 +58,18 @@ export default class Plugin {
 
         registry.registerFileUploadMethod(
             <span className='fa wopi-file-upload-icon icon-filetype-document'/>,
-            () => null,
+            () => dispatch(showFileCreateModal(TEMPLATE_TYPES.DOCUMENT)),
             'New document',
         );
+
         registry.registerFileUploadMethod(
             <span className='fa wopi-file-upload-icon icon-filetype-spreadsheet'/>,
-            () => null,
+            () => dispatch(showFileCreateModal(TEMPLATE_TYPES.SPREADSHEET)),
             'New spreadsheet',
         );
         registry.registerFileUploadMethod(
             <span className='fa wopi-file-upload-icon icon-filetype-presentation'/>,
-            () => null,
+            () => dispatch(showFileCreateModal(TEMPLATE_TYPES.PRESENTATION)),
             'New presentation',
         );
     }

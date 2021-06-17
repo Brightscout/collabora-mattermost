@@ -14,7 +14,21 @@ var (
 	// WopiFiles maps file extension with file action & url
 	WopiFiles map[string]WopiFile
 
+	// validEncryptionKeyChars ensures that the encryption key only contains letters and numbers
 	validEncryptionKeyChars = regexp.MustCompile("[^a-zA-Z0-9]+")
+
+	// TemplateFromExt stores the name of the template file corresponding to each file extension
+	TemplateFromExt = map[string]string{
+		"odp":  "template.odp",
+		"pptx": "pptxtemplate.pptx",
+		"otp":  "presentation.otp",
+		"odt":  "odttemplate.odt",
+		"ots":  "spreadsheet.ots",
+		"ods":  "template.ods",
+		"xlsx": "xlsxtemplate.xlsx",
+		"docx": "docxtemplate.docx",
+		"ott":  "document.ott",
+	}
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
