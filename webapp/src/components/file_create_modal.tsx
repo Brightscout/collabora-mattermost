@@ -69,27 +69,10 @@ export const FileCreateModal: FC = () => {
                 </h4>
             </Modal.Header>
             <Modal.Body>
-                <div
-                    style={{
-                        display: 'flex',
-                    }}
-                >
-                    <div
-                        style={{
-                            flexGrow: 1,
-                            marginRight: '1em',
-                            position: 'relative',
-                            display: 'flex',
-                        }}
-                        className='form-control filter-textbox'
-                    >
+                <div className='d-flex'>
+                    <div className='form-control d-flex collabora-filename-container'>
                         <input
-                            style={{
-                                flexGrow: 1,
-                                border: 0,
-                                padding: 0,
-                                marginRight: 20,
-                            }}
+                            className='collabora-filename-input'
                             autoFocus={true}
                             type='text'
                             ref={inputRef}
@@ -129,7 +112,7 @@ export const FileCreateModal: FC = () => {
                     <div>
                         <FormGroup controlId='formControlsSelect'>
                             <FormControl
-                                style={{minWidth: 90}}
+                                className='collabora-file-ext-select'
                                 componentClass='select'
                                 placeholder='Select File Extension'
                                 value={fileExt}

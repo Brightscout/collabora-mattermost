@@ -9,9 +9,9 @@ export enum TEMPLATE_TYPES {
 }
 
 export const FILE_TEMPLATES: Dictionary<string[]> = {
-    [TEMPLATE_TYPES.DOCUMENT]: ['docx', 'ott', 'odt'],
-    [TEMPLATE_TYPES.PRESENTATION]: ['pptx', 'otp', 'odp'],
-    [TEMPLATE_TYPES.SPREADSHEET]: ['xlsx', 'ots', 'ods'],
+    [TEMPLATE_TYPES.DOCUMENT]: ['docx', 'odt'],
+    [TEMPLATE_TYPES.PRESENTATION]: ['pptx', 'odp'],
+    [TEMPLATE_TYPES.SPREADSHEET]: ['xlsx', 'ods'],
 };
 
 export default Object.freeze({

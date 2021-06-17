@@ -19,15 +19,12 @@ var (
 
 	// TemplateFromExt stores the name of the template file corresponding to each file extension
 	TemplateFromExt = map[string]string{
-		"odp":  "template.odp",
-		"pptx": "pptxtemplate.pptx",
-		"otp":  "presentation.otp",
-		"odt":  "odttemplate.odt",
-		"ots":  "spreadsheet.ots",
-		"ods":  "template.ods",
-		"xlsx": "xlsxtemplate.xlsx",
 		"docx": "docxtemplate.docx",
-		"ott":  "document.ott",
+		"odt":  "odttemplate.odt",
+		"pptx": "pptxtemplate.pptx",
+		"odp":  "template.odp",
+		"xlsx": "xlsxtemplate.xlsx",
+		"ods":  "template.ods",
 	}
 )
 

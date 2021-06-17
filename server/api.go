@@ -157,7 +157,7 @@ func (p *Plugin) createFileFromTemplate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if _, appErr := p.API.CreatePost(post); appErr != nil {
-		p.API.LogError("Failed to upload the template file.", "Error", appErr.Error())
+		p.API.LogError("Failed to create post with the template file.", "Error", appErr.Error())
 		http.Error(w, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
