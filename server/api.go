@@ -121,8 +121,8 @@ func (p *Plugin) createFileFromTemplate(w http.ResponseWriter, r *http.Request) 
 
 	templateName, templateFound := TemplateFromExt[fileExt]
 	if !templateFound {
-		http.Error(w, "no template found for file extension: "+fileExt, http.StatusBadRequest)
-		http.Error(w, "template not found", http.StatusBadRequest)
+		p.API.LogWarn("no template found for file extension: " + fileExt)
+		http.Error(w, "template not found for provided file extension", http.StatusBadRequest)
 		return
 	}
 
