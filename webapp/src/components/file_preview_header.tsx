@@ -1,4 +1,4 @@
-import React, {FC, useMemo} from 'react';
+import React, {FC, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
 import clsx from 'clsx';
 import {Button} from 'react-bootstrap';
@@ -7,8 +7,10 @@ import {FileInfo} from 'mattermost-redux/types/files';
 import {GlobalState} from 'mattermost-redux/types/store';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import Client from 'client';
+import {collaboraConfig} from 'selectors';
 
 import {CHANNEL_TYPES} from '../constants';
 
@@ -40,6 +42,16 @@ export const FilePreviewHeader: FC<Props> = ({fileInfo, onClose, editable, toggl
             return channel.display_name;
         }
     }, [channel]);
+
+    const currentUser = useSelector(getCurrentUser);
+    const collaboraConf = useSelector(collaboraConfig);
+
+    const editPermissionsFeatureEnabled = collaboraConf.file_edit_permissions;
+    const showEditPermissionChangeOption = editPermissionsFeatureEnabled && post.user_id === currentUser.id;
+    const [canChannelEdit, setCanChannelEdit] = useState(true);
+    const toggleCanChannelEdit = () => {
+        setCanChannelEdit((prevState) => !prevState);
+    };
 
     return (
         <>
@@ -139,7 +151,27 @@ export const FilePreviewHeader: FC<Props> = ({fileInfo, onClose, editable, toggl
                             )}
                         />
                     </Button>
-
+                    {
+                        showEditPermissionChangeOption && (
+                            <Button
+                                bsStyle='large'
+                                onClick={toggleCanChannelEdit}
+                                className='collabora-header-action-button'
+                                title={canChannelEdit ? 'Everyone in the channel can edit.' : 'Only you can edit.'}
+                                aria-label={canChannelEdit ? 'Everyone in the channel can edit.' : 'Only you can edit.'}
+                            >
+                                <i
+                                    className={clsx(
+                                        'fa',
+                                        {
+                                            'fa-users': canChannelEdit,
+                                            'fa-user': !canChannelEdit,
+                                        },
+                                    )}
+                                />
+                            </Button>
+                        )
+                    }
                     <div className='collabora-header-actions-separator'/>
                     <CloseIcon
                         id='closeIcon'

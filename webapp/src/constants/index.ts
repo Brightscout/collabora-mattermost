@@ -26,4 +26,5 @@ export default Object.freeze({
     CHANNEL_TYPES,
     TEMPLATE_TYPES,
     FILE_TEMPLATES,
+    WEBSOCKET_EVENT_CONFIG_UPDATED: 'config_updated',
 });

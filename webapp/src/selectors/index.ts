@@ -5,6 +5,8 @@ import {id as pluginId} from '../manifest';
 //@ts-ignore GlobalState is not complete
 const getPluginState = (state: GlobalState) => state['plugins-' + pluginId] || {};
 
+export const collaboraConfig = (state: GlobalState) => getPluginState(state).config;
+
 export const wopiFilesList = (state: GlobalState) => getPluginState(state).wopiFilesList;
 
 export const filePreviewModal = (state: GlobalState) => getPluginState(state).filePreviewModal;

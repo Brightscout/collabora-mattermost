@@ -26,6 +26,8 @@ var (
 		"xlsx": "xlsxtemplate.xlsx",
 		"ods":  "template.ods",
 	}
+
+	WebsocketEventConfigUpdated = "config_updated"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
@@ -40,9 +42,17 @@ var (
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
-	WOPIAddress   string
-	SkipSSLVerify bool
-	EncryptionKey string
+	WOPIAddress         string
+	SkipSSLVerify       bool
+	EncryptionKey       string
+	FileEditPermissions bool
+}
+
+// ToWebappConfig initializes the webapp config from configuration
+func (c *configuration) ToWebappConfig() *WebappConfig {
+	return &WebappConfig{
+		c.FileEditPermissions,
+	}
 }
 
 // Clone deep copies the configuration

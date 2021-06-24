@@ -30,6 +30,7 @@ const FilePreviewModal: FC = () => {
         }
 
         dispatch(closeFilePreview());
+        setEditable(false);
     }, [dispatch]);
 
     return (
