@@ -112,7 +112,7 @@ func (p *Plugin) setFilePermissions(w http.ResponseWriter, r *http.Request) {
 	fileInfo, fileInfoError := p.API.GetFileInfo(fileID)
 	if fileInfoError != nil {
 		p.API.LogError("Error when retrieving file info: ", fileInfoError.Error())
-		http.Error(w, "File not found. Invalid fileID: " + fileID, http.StatusBadRequest)
+		http.Error(w, "File not found. Invalid fileID: "+fileID, http.StatusBadRequest)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (p *Plugin) setFilePermissions(w http.ResponseWriter, r *http.Request) {
 
 	permissionQuery := r.URL.Query().Get("permission")
 	var allowedPermissions = map[string]bool{
-		"owner": true, // permission owner allows only the owner to edit the file
+		"owner":   true, // permission owner allows only the owner to edit the file
 		"channel": true, // permission channel allows only all channel members to edit the file
 	}
 

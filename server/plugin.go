@@ -55,7 +55,7 @@ func (p *Plugin) OnConfigurationChange() error {
 }
 
 // UserHasLoggedIn is invoked after a user has logged in.
-func  (p *Plugin) UserHasLoggedIn(c *plugin.Context, user *model.User) {
+func (p *Plugin) UserHasLoggedIn(c *plugin.Context, user *model.User) {
 	// send the config to the webapp
 	config := p.getConfiguration().ToWebappConfig()
 	p.API.PublishWebSocketEvent(WebsocketEventConfigUpdated, config.ToMap(), &model.WebsocketBroadcast{})

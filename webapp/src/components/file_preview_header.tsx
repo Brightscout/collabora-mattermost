@@ -1,4 +1,4 @@
-import React, {FC, useMemo, useState} from 'react';
+import React, {FC, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 import clsx from 'clsx';
 import {Button} from 'react-bootstrap';
@@ -7,10 +7,8 @@ import {FileInfo} from 'mattermost-redux/types/files';
 import {GlobalState} from 'mattermost-redux/types/store';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import Client from 'client';
-import {collaboraConfig} from 'selectors';
 
 import {CHANNEL_TYPES} from '../constants';
 
@@ -21,9 +19,13 @@ type Props = {
     onClose: () => void;
     editable: boolean;
     toggleEditing: () => void;
+    canChannelEdit: boolean;
+    toggleCanChannelEdit: () => void;
+    showEditPermissionChangeOption: boolean;
 }
 
-export const FilePreviewHeader: FC<Props> = ({fileInfo, onClose, editable, toggleEditing}: Props) => {
+export const FilePreviewHeader: FC<Props> = (props: Props) => {
+    const {fileInfo, onClose, editable, toggleEditing, canChannelEdit, toggleCanChannelEdit, showEditPermissionChangeOption} = props;
     const post = useSelector((state: GlobalState) => getPost(state, fileInfo.post_id || ''));
     const channel = useSelector((state: GlobalState) => getChannel(state, post?.channel_id));
     const channelName: React.ReactNode = useMemo(() => {
@@ -43,15 +45,7 @@ export const FilePreviewHeader: FC<Props> = ({fileInfo, onClose, editable, toggl
         }
     }, [channel]);
 
-    const currentUser = useSelector(getCurrentUser);
-    const collaboraConf = useSelector(collaboraConfig);
-
-    const editPermissionsFeatureEnabled = collaboraConf.file_edit_permissions;
-    const showEditPermissionChangeOption = editPermissionsFeatureEnabled && post.user_id === currentUser.id;
-    const [canChannelEdit, setCanChannelEdit] = useState(true);
-    const toggleCanChannelEdit = () => {
-        setCanChannelEdit((prevState) => !prevState);
-    };
+    const canCurrentUserEdit = showEditPermissionChangeOption || canChannelEdit;
 
     return (
         <>
@@ -136,10 +130,11 @@ export const FilePreviewHeader: FC<Props> = ({fileInfo, onClose, editable, toggl
                     <Button
                         bsSize='large'
                         bsStyle='large'
+                        disabled={!canCurrentUserEdit}
                         onClick={toggleEditing}
                         className='collabora-header-action-button'
-                        title={`${editable ? 'Lock' : 'Unlock'} Editing`}
-                        aria-label={`${editable ? 'Lock' : 'Unlock'} Editing`}
+                        title={`${editable ? 'Lock' : 'Unlock'} Editing${!canCurrentUserEdit ? ' (disabled as only the owner can edit)' : ''}`}
+                        aria-label={`${editable ? 'Lock' : 'Unlock'} Editing${!canCurrentUserEdit ? ' (disabled as only the owner can edit)' : ''}`}
                     >
                         <i
                             className={clsx(

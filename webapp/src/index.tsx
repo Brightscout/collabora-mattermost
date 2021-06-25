@@ -7,6 +7,7 @@ import {PluginRegistry} from 'mattermost-webapp/plugins/registry';
 
 import {GlobalState} from 'mattermost-webapp/types/store';
 import {FileInfo} from 'mattermost-redux/types/files';
+import {WebSocketMessage} from 'mattermost-redux/types/websocket';
 
 import Actions from 'actions';
 import {wopiFilesList} from 'selectors';
@@ -21,7 +22,6 @@ import Constants, {TEMPLATE_TYPES} from './constants';
 import {id as pluginId} from './manifest';
 
 import './components/styles.css';
-import {WebSocketMessage} from "mattermost-redux/types/websocket";
 
 export default class Plugin {
     shouldShowPreview = (store: Store<GlobalState>, fileInfo: FileInfo) => {
