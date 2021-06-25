@@ -2,9 +2,10 @@ package main
 
 import (
 	"crypto/tls"
-	root "github.com/CollaboraOnline/collabora-mattermost"
 	"io"
 	"net/http"
+
+	root "github.com/CollaboraOnline/collabora-mattermost"
 
 	"github.com/mattermost/mattermost-server/v5/shared/filestore"
 )
