@@ -2,7 +2,11 @@
 
 This plugin enables Mattermost users to preview and collaboratively edit documents (simple text files, word, spreadsheet and presentation documents) via a [Collabora Online](https://www.collaboraoffice.com/collabora-online/) Server using the WOPI protocol.
 
+<<<<<<< HEAD
 ![Demo](https://www.collaboraoffice.com/wp-content/uploads/2019/09/plugin_riff.gif)
+=======
+![Demo](https://www.collaboraoffice.com/wp-content/uploads/2019/09/plugin_video.gif)
+>>>>>>> f497f5a0570c200b59f95f3cfb72a02f682def82
 
 ## How does it work?
 

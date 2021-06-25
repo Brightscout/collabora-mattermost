@@ -1,6 +1,6 @@
-import { GlobalState } from 'mattermost-webapp/types/store';
+import {GlobalState} from 'mattermost-webapp/types/store';
 
-import { id as pluginId } from '../manifest';
+import {id as pluginId} from '../manifest';
 
 //@ts-ignore GlobalState is not complete
 const getPluginState = (state: GlobalState) => state['plugins-' + pluginId] || {};
