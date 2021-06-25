@@ -29,6 +29,8 @@ func (p *Plugin) InitAPI() *mux.Router {
 	s := r.PathPrefix("/api/v1").Subrouter()
 
 	// Add the custom plugin routes here
+	s.HandleFunc("/config", p.getWebappConfig).Methods(http.MethodGet)
+	s.HandleFunc("/files/{fileID:[A-Za-z0-9_-]+}/access", handleAuthRequired(p.setFilePermissions)).Methods(http.MethodPost)
 	s.HandleFunc("/channels/{channelID:[A-Za-z0-9_-]+}/files/new", handleAuthRequired(p.createFileFromTemplate)).Methods(http.MethodPost).Queries("name", "{name}", "ext", "{ext}")
 	s.HandleFunc("/fileInfo", handleAuthRequired(p.parseFileIDs)).Methods(http.MethodGet)
 	s.HandleFunc("/wopiFileList", handleAuthRequired(p.returnWopiFileList)).Methods(http.MethodGet)
@@ -94,6 +96,61 @@ func handleAuthRequired(handleFunc func(w http.ResponseWriter, r *http.Request))
 
 		handleFunc(w, r)
 	}
+}
+
+func (p *Plugin) getWebappConfig(w http.ResponseWriter, r *http.Request) {
+	var config = p.getConfiguration().ToWebappConfig()
+
+	responseJSON, _ := json.Marshal(config)
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(responseJSON)
+}
+
+func (p *Plugin) setFilePermissions(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	fileID := params["fileID"]
+	fileInfo, fileInfoError := p.API.GetFileInfo(fileID)
+	if fileInfoError != nil {
+		p.API.LogError("Error when retrieving file info: ", fileInfoError.Error())
+		http.Error(w, "File not found. Invalid fileID: " + fileID, http.StatusBadRequest)
+		return
+	}
+
+	post, postError := p.API.GetPost(fileInfo.PostId)
+	if postError != nil {
+		p.API.LogError("Error occurred when retrieving post info for file: " + postError.Error())
+		http.Error(w, postError.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	userID := r.Header.Get(HeaderMattermostUserID)
+	if post.UserId != userID {
+		p.API.LogError("User does not have access to change file permissions.")
+		http.Error(w, "Only the owner can change file permissions.", http.StatusBadRequest)
+		return
+	}
+
+	permissionQuery := r.URL.Query().Get("permission")
+	var allowedPermissions = map[string]bool{
+		"owner": true, // permission owner allows only the owner to edit the file
+		"channel": true, // permission channel allows only all channel members to edit the file
+	}
+
+	if _, ok := allowedPermissions[permissionQuery]; !ok {
+		p.API.LogError("Invalid permission query param.", "permissionQuery", permissionQuery)
+		http.Error(w, "Invalid permission query param.", http.StatusBadRequest)
+		return
+	}
+
+	filePermissionsKey := GetFilePermissionsKey(fileID)
+	post.AddProp(filePermissionsKey, permissionQuery)
+	if _, postErr := p.API.UpdatePost(post); postErr != nil {
+		p.API.LogError("Failed to update post", "Error", postErr.Error())
+		http.Error(w, postErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	returnStatusOK(w)
 }
 
 // createFileFromTemplate creates a new file from template in the given channel

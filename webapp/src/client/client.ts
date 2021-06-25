@@ -15,6 +15,10 @@ export default class Client {
         this.baseURL = `/plugins/${pluginId}/api/v1`;
     }
 
+    getConfig = () => {
+        return this.doGet(`${this.baseURL}/config`);
+    }
+
     createFileFromTemplate = (channelID: string, name: string, ext: string) => {
         const params = {name, ext};
         return this.doPost(`${this.baseURL}/channels/${channelID}/files/new${this.buildQueryString(params)}`);

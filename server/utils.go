@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	root "github.com/CollaboraOnline/collabora-mattermost"
 	"io"
 	"net/http"
 
@@ -41,4 +42,8 @@ func (p *Plugin) GetHTTPClient() *http.Client {
 
 	client := &http.Client{Transport: customTransport}
 	return client
+}
+
+func GetFilePermissionsKey(fileID string) string {
+	return root.Manifest.Id + "_file_permissions_" + fileID
 }
