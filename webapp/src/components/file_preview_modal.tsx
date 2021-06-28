@@ -9,7 +9,12 @@ import {GlobalState} from 'mattermost-redux/types/store';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {closeFilePreview} from 'actions/preview';
-import {collaboraConfig, filePreviewModal} from 'selectors';
+import {
+    collaboraConfig, collaboraFileEditPermissionsEnabled,
+    filePreviewModal,
+    makeGetCollaboraFilePermissions,
+    makeGetIsCurrentUserFileOwner
+} from 'selectors';
 
 import FullScreenModal from 'components/full_screen_modal';
 import WopiFilePreview from 'components/wopi_file_preview';
@@ -32,12 +37,12 @@ const FilePreviewModal: FC = () => {
         setEditable((prevState) => !prevState);
     }, [setEditable]);
 
-    const post = useSelector((state: GlobalState) => getPost(state, fileInfo?.post_id || ''));
-    const currentUser = useSelector(getCurrentUser);
-    const collaboraConf = useSelector(collaboraConfig);
-
-    const editPermissionsFeatureEnabled = collaboraConf.file_edit_permissions;
-    const showEditPermissionChangeOption = editPermissionsFeatureEnabled && post?.user_id === currentUser.id;
+    const getIsCurrentUserFileOwner = makeGetIsCurrentUserFileOwner();
+    const getCollaboraFilePermissions = makeGetCollaboraFilePermissions();
+    const isCurrentUserOwner = useSelector((state: GlobalState) => getIsCurrentUserFileOwner(state, fileInfo));
+    const filePermission = useSelector((state: GlobalState) => getCollaboraFilePermissions(state, fileInfo));
+    const editPermissionsFeatureEnabled = useSelector(collaboraFileEditPermissionsEnabled);
+    const showEditPermissionChangeOption = editPermissionsFeatureEnabled && isCurrentUserOwner;
 
     const [canChannelEdit, setCanChannelEdit] = useState(false);
     const toggleCanChannelEdit = async () => {
@@ -55,7 +60,7 @@ const FilePreviewModal: FC = () => {
     useEffect(() => {
         let defaultCanChannelEdit = true;
         if (editPermissionsFeatureEnabled) {
-            defaultCanChannelEdit = post?.props?.[pluginId + '_file_permissions_' + fileInfo.id] === FILE_EDIT_PERMISSIONS.PERMISSION_CHANNEL;
+            defaultCanChannelEdit = filePermission === FILE_EDIT_PERMISSIONS.PERMISSION_CHANNEL;
         }
 
         setCanChannelEdit(defaultCanChannelEdit);
@@ -64,7 +69,7 @@ const FilePreviewModal: FC = () => {
         if (!userHasEditPermission) {
             setEditable(false);
         }
-    }, [canChannelEdit, editPermissionsFeatureEnabled, fileInfo.id, post, showEditPermissionChangeOption]);
+    }, [canChannelEdit, editPermissionsFeatureEnabled, fileInfo.id, filePermission, showEditPermissionChangeOption]);
 
     const handleClose = useCallback((e?: Event): void => {
         if (e && e.preventDefault) {

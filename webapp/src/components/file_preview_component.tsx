@@ -1,18 +1,14 @@
 import React, {FC, useCallback, useState} from 'react';
-
+import {useSelector} from 'react-redux';
 import {Button} from 'react-bootstrap';
 
 import {FileInfo} from 'mattermost-redux/types/files';
-
-import {useSelector} from 'react-redux';
 import {GlobalState} from 'mattermost-redux/types/store';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import WopiFilePreview from 'components/wopi_file_preview';
-import {collaboraConfig} from '../selectors';
-import {id as pluginId} from '../manifest';
-import {FILE_EDIT_PERMISSIONS} from "../constants";
+import {collaboraFileEditPermissionsEnabled, makeGetCollaboraFilePermissions, makeGetIsCurrentUserFileOwner} from 'selectors';
+
+import {FILE_EDIT_PERMISSIONS} from '../constants';
 
 type Props = {
     fileInfo: FileInfo;
@@ -25,13 +21,14 @@ const FilePreviewComponent: FC<Props> = ({fileInfo}: Props) => {
         setEditable(true);
     }, []);
 
-    const post = useSelector((state: GlobalState) => getPost(state, fileInfo.post_id || ''));
-    const currentUser = useSelector(getCurrentUser);
-    const collaboraConf = useSelector(collaboraConfig);
+    const getIsCurrentUserFileOwner = makeGetIsCurrentUserFileOwner();
+    const getCollaboraFilePermissions = makeGetCollaboraFilePermissions();
+    const isCurrentUserOwner = useSelector((state: GlobalState) => getIsCurrentUserFileOwner(state, fileInfo));
+    const filePermission = useSelector((state: GlobalState) => getCollaboraFilePermissions(state, fileInfo));
+    const editPermissionsFeatureEnabled = useSelector(collaboraFileEditPermissionsEnabled);
 
-    const editPermissionsFeatureEnabled = collaboraConf.file_edit_permissions;
-    const showEditPermissionChangeOption = editPermissionsFeatureEnabled && post?.user_id === currentUser.id;
-    const canChannelEdit = post?.props?.[pluginId + '_file_permissions_' + fileInfo.id] === FILE_EDIT_PERMISSIONS.PERMISSION_CHANNEL;
+    const showEditPermissionChangeOption = editPermissionsFeatureEnabled && isCurrentUserOwner;
+    const canChannelEdit = filePermission === FILE_EDIT_PERMISSIONS.PERMISSION_CHANNEL;
     const canCurrentUserEdit = showEditPermissionChangeOption || canChannelEdit;
 
     return (
