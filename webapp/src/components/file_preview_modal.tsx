@@ -4,16 +4,15 @@ import {ThunkDispatch} from 'redux-thunk';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {FileInfo} from 'mattermost-redux/types/files';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {GlobalState} from 'mattermost-redux/types/store';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
+import {updateFileEditPermission} from 'actions/file';
 import {closeFilePreview} from 'actions/preview';
 import {
-    collaboraConfig, collaboraFileEditPermissionsEnabled,
+    collaboraFileEditPermissionsEnabled,
     filePreviewModal,
     makeGetCollaboraFilePermissions,
-    makeGetIsCurrentUserFileOwner
+    makeGetIsCurrentUserFileOwner,
 } from 'selectors';
 
 import FullScreenModal from 'components/full_screen_modal';
@@ -21,8 +20,6 @@ import WopiFilePreview from 'components/wopi_file_preview';
 import FilePreviewHeader from 'components/file_preview_header';
 
 import {FILE_EDIT_PERMISSIONS} from '../constants';
-import {updateFileEditPermission} from '../actions/file';
-import {id as pluginId} from '../manifest';
 
 type FilePreviewModalSelector = {
     visible: boolean;

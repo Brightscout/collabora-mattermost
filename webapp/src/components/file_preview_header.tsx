@@ -23,6 +23,7 @@ export const FilePreviewHeader: FC<Props> = (props: Props) => {
     const {fileInfo, onClose, editable, toggleEditing, canChannelEdit, toggleCanChannelEdit, showEditPermissionChangeOption} = props;
     const channelName: React.ReactNode = useChannelName(fileInfo);
     const canCurrentUserEdit = showEditPermissionChangeOption || canChannelEdit;
+    const editModeTitle = `${editable ? 'Lock' : 'Unlock'} Editing${canCurrentUserEdit ? '' : ' (disabled as only the owner can edit)'}`;
 
     return (
         <>
@@ -110,8 +111,8 @@ export const FilePreviewHeader: FC<Props> = (props: Props) => {
                         disabled={!canCurrentUserEdit}
                         onClick={toggleEditing}
                         className='collabora-header-action-button'
-                        title={`${editable ? 'Lock' : 'Unlock'} Editing${!canCurrentUserEdit ? ' (disabled as only the owner can edit)' : ''}`}
-                        aria-label={`${editable ? 'Lock' : 'Unlock'} Editing${!canCurrentUserEdit ? ' (disabled as only the owner can edit)' : ''}`}
+                        title={editModeTitle}
+                        aria-label={editModeTitle}
                     >
                         <i
                             className={clsx(
