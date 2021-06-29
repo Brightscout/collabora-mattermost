@@ -34,8 +34,8 @@ const FilePreviewModal: FC = () => {
         setEditable((prevState) => !prevState);
     }, [setEditable]);
 
-    const getIsCurrentUserFileOwner = makeGetIsCurrentUserFileOwner();
-    const getCollaboraFilePermissions = makeGetCollaboraFilePermissions();
+    const getIsCurrentUserFileOwner = useMemo(makeGetIsCurrentUserFileOwner, []);
+    const getCollaboraFilePermissions = useMemo(makeGetCollaboraFilePermissions, []);
     const isCurrentUserOwner = useSelector((state: GlobalState) => getIsCurrentUserFileOwner(state, fileInfo));
     const filePermission = useSelector((state: GlobalState) => getCollaboraFilePermissions(state, fileInfo));
     const editPermissionsFeatureEnabled = useSelector(collaboraFileEditPermissionsEnabled);
