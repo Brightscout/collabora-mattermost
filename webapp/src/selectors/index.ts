@@ -19,7 +19,7 @@ export const createFileModal = (state: GlobalState) => getPluginState(state).cre
 
 export const collaboraConfig = (state: GlobalState) => getPluginState(state).config;
 
-export const collaboraFileEditPermissionsEnabled = (state: GlobalState) => Boolean(collaboraConfig(state)?.file_edit_permissions);
+export const enableEditPermissions = (state: GlobalState) => Boolean(collaboraConfig(state)?.file_edit_permissions);
 
 export function makeGetIsCurrentUserFileOwner(): (state: GlobalState, fileInfo: FileInfo) => boolean {
     return createSelector(
@@ -33,7 +33,7 @@ export function makeGetIsCurrentUserFileOwner(): (state: GlobalState, fileInfo: 
 
 export function makeGetCollaboraFilePermissions(): (state: GlobalState, fileInfo: FileInfo) => FILE_EDIT_PERMISSIONS {
     return createSelector(
-        (state: GlobalState) => collaboraFileEditPermissionsEnabled(state),
+        (state: GlobalState) => enableEditPermissions(state),
         (state: GlobalState, fileInfo: FileInfo) => getPost(state, fileInfo.post_id || ''),
         (state: GlobalState, fileInfo: FileInfo) => fileInfo.id,
         (featureEnabled, post, fileID) => {

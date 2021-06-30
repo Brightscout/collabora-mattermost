@@ -1,4 +1,4 @@
-import React, {FC, useCallback, useEffect, useState} from 'react';
+import React, {FC, useCallback, useEffect, useMemo, useState} from 'react';
 import {AnyAction} from 'redux';
 import {ThunkDispatch} from 'redux-thunk';
 import {useDispatch, useSelector} from 'react-redux';
@@ -9,7 +9,7 @@ import {GlobalState} from 'mattermost-redux/types/store';
 import {updateFileEditPermission} from 'actions/file';
 import {closeFilePreview} from 'actions/preview';
 import {
-    collaboraFileEditPermissionsEnabled,
+    enableEditPermissions,
     filePreviewModal,
     makeGetCollaboraFilePermissions,
     makeGetIsCurrentUserFileOwner,
@@ -38,7 +38,7 @@ const FilePreviewModal: FC = () => {
     const getCollaboraFilePermissions = useMemo(makeGetCollaboraFilePermissions, []);
     const isCurrentUserOwner = useSelector((state: GlobalState) => getIsCurrentUserFileOwner(state, fileInfo));
     const filePermission = useSelector((state: GlobalState) => getCollaboraFilePermissions(state, fileInfo));
-    const editPermissionsFeatureEnabled = useSelector(collaboraFileEditPermissionsEnabled);
+    const editPermissionsFeatureEnabled = useSelector(enableEditPermissions);
     const showEditPermissionChangeOption = editPermissionsFeatureEnabled && isCurrentUserOwner;
 
     const [canChannelEdit, setCanChannelEdit] = useState(false);
@@ -49,7 +49,7 @@ const FilePreviewModal: FC = () => {
         if ((response as {error: unknown}).error) {
             // TODO handle error
             setCanChannelEdit((prevState: boolean) => !prevState);
-        } else if (!canChannelEdit) {
+        } else if (!canChannelEdit && !isCurrentUserOwner) {
             setEditable(false);
         }
     };
@@ -61,12 +61,14 @@ const FilePreviewModal: FC = () => {
         }
 
         setCanChannelEdit(defaultCanChannelEdit);
+    }, [editPermissionsFeatureEnabled, fileInfo.id, filePermission]);
 
+    useEffect(() => {
         const userHasEditPermission = showEditPermissionChangeOption || canChannelEdit;
         if (!userHasEditPermission) {
             setEditable(false);
         }
-    }, [canChannelEdit, editPermissionsFeatureEnabled, fileInfo.id, filePermission, showEditPermissionChangeOption]);
+    }, [canChannelEdit, showEditPermissionChangeOption]);
 
     const handleClose = useCallback((e?: Event): void => {
         if (e && e.preventDefault) {

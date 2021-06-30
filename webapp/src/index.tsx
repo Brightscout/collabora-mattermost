@@ -5,7 +5,7 @@ import {ThunkDispatch} from 'redux-thunk';
 //@ts-ignore PluginRegistry doesn't have types yet
 import {PluginRegistry} from 'mattermost-webapp/plugins/registry';
 
-import {GlobalState} from 'mattermost-webapp/types/store';
+import {GlobalState} from 'mattermost-redux/types/store';
 import {FileInfo} from 'mattermost-redux/types/files';
 import {WebSocketMessage} from 'mattermost-redux/types/websocket';
 

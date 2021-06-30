@@ -27,7 +27,20 @@ var (
 		"ods":  "template.ods",
 	}
 
+	// WebsocketEventConfigUpdated is the websocket event called to update plugin config on clients' webapp
 	WebsocketEventConfigUpdated = "config_updated"
+
+	// PermissionOwner allows only the owner to edit the file
+	PermissionOwner = "owner"
+
+	// PermissionChannel allows only all channel members to edit the file
+	PermissionChannel = "channel"
+
+	// AllowedFilePermissions is the list of file permissions
+	AllowedFilePermissions = map[string]bool{
+		PermissionOwner:   true,
+		PermissionChannel: true,
+	}
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
