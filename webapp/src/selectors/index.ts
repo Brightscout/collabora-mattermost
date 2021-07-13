@@ -28,7 +28,7 @@ export function makeGetIsCurrentUserFileOwner(): (state: GlobalState, fileInfo: 
         (state: GlobalState) => getCurrentUser(state),
         (fileInfo, post, currentUser) => {
             // for the existing attachment, user_id is fetched from post
-            // but, for the newly created attachment, user_id is not present in fileinfo,
+            // but, for the newly created attachment, user_id is fetched from fileinfo,
             return Boolean(post?.user_id === currentUser.id || fileInfo.user_id === currentUser.id);
         },
     );
