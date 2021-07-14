@@ -313,7 +313,7 @@ func (p *Plugin) returnCollaboraOnlineFileURL(w http.ResponseWriter, r *http.Req
 	if conf.FileEditPermissions && existingFilePermission == nil {
 		// If the edit permissions feature is enabled,
 		// set the default permission to allow only the owner to edit
-		// skip the file owner check to handle the scenario 
+		// skip the file owner check to handle the scenario
 		// when some user A has upload a file, which is opened first time by user B
 
 		if err := p.setFilePermissions(fileID, userID, PermissionOwner, true); err != nil {

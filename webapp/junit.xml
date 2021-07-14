@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="3" failures="0" errors="0" time="3.11">
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2021-07-14T08:33:52" time="2.319" tests="2">
+    <testcase classname=" Plugin manifest, id and version are defined" name=" Plugin manifest, id and version are defined" time="0.003">
+    </testcase>
+    <testcase classname=" Plugin id and version are defined" name=" Plugin id and version are defined" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2021-07-14T08:33:54" time="0.256" tests="1">
+    <testcase classname=" Plugin id and version are defined" name=" Plugin id and version are defined" time="0.003">
+    </testcase>
+  </testsuite>
+</testsuites>
