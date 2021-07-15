@@ -135,7 +135,7 @@ func (p *Plugin) handleSaveFilePermissions(w http.ResponseWriter, r *http.Reques
 	returnStatusOK(w)
 }
 
-func (p *Plugin) setFilePermissions(fileID, userID, permission string, skipFileOwnerCheck bool) error {
+func (p *Plugin) setFilePermissions(fileID, userID, permission string, bypassFileOwnerCheck bool) error {
 	fileInfo, fileInfoError := p.API.GetFileInfo(fileID)
 	if fileInfoError != nil {
 		p.API.LogError("Error when retrieving file info: ", fileInfoError.Error(), "fileID", fileID)
@@ -148,7 +148,7 @@ func (p *Plugin) setFilePermissions(fileID, userID, permission string, skipFileO
 		return errors.Wrap(postError, "error when retrieving post for file")
 	}
 
-	if !skipFileOwnerCheck && post.UserId != userID {
+	if !bypassFileOwnerCheck && post.UserId != userID {
 		p.API.LogError("User does not have access to change file permissions.")
 		return errors.New("only the file owner can change file permissions")
 	}
